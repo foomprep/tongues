@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import './App.css'
+import './output.css'
 import ePub from 'epubjs'
 
 function App() {
@@ -45,17 +45,17 @@ function App() {
   return (
     <>
       <input type="file" onChange={handleFileChange} accept=".epub" />
-      <div style={{ position: 'relative', width: '100%', height: '80vh' }}>
-        <div id="viewer" style={{ width: '100%', height: '100%' }}></div>
+      <div className="relative w-screen h-screen">
+        <div id="viewer" className="w-full h-full"></div>
         <button 
           onClick={handlePrevPage} 
-          style={{ position: 'absolute', left: '0', top: '50%', transform: 'translateY(-50%)', height: '100%', padding: '0 10px' }}
+          className="absolute left-0 top-1/2 -translate-y-1/2 h-full px-2.5"
         >
           &#8592;
         </button>
         <button 
           onClick={handleNextPage} 
-          style={{ position: 'absolute', right: '0', top: '50%', transform: 'translateY(-50%)', height: '100%', padding: '0 10px' }}
+          className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-2.5"
         >
           &#8594;
         </button>
