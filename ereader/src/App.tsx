@@ -55,7 +55,10 @@ function App() {
   return (
     <>
       {!bookLoaded ? (
-        <input type="file" onChange={handleFileChange} accept=".epub" />
+        <div className="flex flex-col items-center justify-center h-screen w-screen">
+          <p className="mb-4 text-lg">Please select an ePub file to read:</p>
+          <input type="file" onChange={handleFileChange} accept=".epub" className="p-2 border rounded" />
+        </div>
       ) : (
         <div className="relative w-screen h-screen">
           <div id="viewer" className="w-full h-full"></div>
