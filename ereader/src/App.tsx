@@ -22,6 +22,18 @@ function App() {
     }
   }
 
+  const handlePrevPage = () => {
+    if (rendition) {
+      rendition.prev()
+    }
+  }
+
+  const handleNextPage = () => {
+    if (rendition) {
+      rendition.next()
+    }
+  }
+
   useEffect(() => {
     return () => {
       if (rendition) {
@@ -33,7 +45,21 @@ function App() {
   return (
     <>
       <input type="file" onChange={handleFileChange} accept=".epub" />
-      <div id="viewer" style={{ width: '100%', height: '80vh' }}></div>
+      <div style={{ position: 'relative', width: '100%', height: '80vh' }}>
+        <div id="viewer" style={{ width: '100%', height: '100%' }}></div>
+        <button 
+          onClick={handlePrevPage} 
+          style={{ position: 'absolute', left: '0', top: '50%', transform: 'translateY(-50%)', height: '100%', padding: '0 10px' }}
+        >
+          &#8592;
+        </button>
+        <button 
+          onClick={handleNextPage} 
+          style={{ position: 'absolute', right: '0', top: '50%', transform: 'translateY(-50%)', height: '100%', padding: '0 10px' }}
+        >
+          &#8594;
+        </button>
+      </div>
     </>
   )
 }
