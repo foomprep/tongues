@@ -61,13 +61,13 @@ function App() {
           <div id="viewer" className="w-full h-full"></div>
           <button 
             onClick={handlePrevPage} 
-            className="absolute left-0 top-1/2 -translate-y-1/2 h-full px-2.5"
+            className="absolute left-0 top-1/2 -translate-y-1/2 p-2 bg-gray-200 rounded-r"
           >
             &#8592;
           </button>
           <button 
             onClick={handleNextPage} 
-            className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-2.5"
+            className="absolute right-0 top-1/2 -translate-y-1/2 p-2 bg-gray-200 rounded-l"
           >
             &#8594;
           </button>
