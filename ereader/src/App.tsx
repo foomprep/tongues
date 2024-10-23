@@ -4,6 +4,7 @@ import ePub from 'epubjs'
 
 function App() {
   const [rendition, setRendition] = useState(null)
+  const [bookLoaded, setBookLoaded] = useState(false)
 
   const handleFileChange = (event) => {
     const file = event.target.files[0]
@@ -17,6 +18,7 @@ function App() {
         })
         setRendition(newRendition)
         newRendition.display()
+        setBookLoaded(true)
       }
       reader.readAsArrayBuffer(file)
     }
@@ -34,6 +36,14 @@ function App() {
     }
   }
 
+  const handleCloseBook = () => {
+    if (rendition) {
+      rendition.destroy()
+    }
+    setRendition(null)
+    setBookLoaded(false)
+  }
+
   useEffect(() => {
     return () => {
       if (rendition) {
@@ -44,22 +54,31 @@ function App() {
 
   return (
     <>
-      <input type="file" onChange={handleFileChange} accept=".epub" />
-      <div className="relative w-screen h-screen">
-        <div id="viewer" className="w-full h-full"></div>
-        <button 
-          onClick={handlePrevPage} 
-          className="absolute left-0 top-1/2 -translate-y-1/2 h-full px-2.5"
-        >
-          &#8592;
-        </button>
-        <button 
-          onClick={handleNextPage} 
-          className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-2.5"
-        >
-          &#8594;
-        </button>
-      </div>
+      {!bookLoaded ? (
+        <input type="file" onChange={handleFileChange} accept=".epub" />
+      ) : (
+        <div className="relative w-screen h-screen">
+          <div id="viewer" className="w-full h-full"></div>
+          <button 
+            onClick={handlePrevPage} 
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-full px-2.5"
+          >
+            &#8592;
+          </button>
+          <button 
+            onClick={handleNextPage} 
+            className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-2.5"
+          >
+            &#8594;
+          </button>
+          <button 
+            onClick={handleCloseBook} 
+            className="absolute top-0 right-0 m-2 p-2 bg-red-500 text-white rounded"
+          >
+            Close Book
+          </button>
+        </div>
+      )}
     </>
   )
 }
