@@ -20,7 +20,6 @@ const SCRIPT: &str = r#"
         cursor: pointer;
     }
 
-    /* CSS for modal */
     .modal {
         display: none; /* Hidden by default */
         position: fixed; /* Stay in place */
@@ -32,13 +31,18 @@ const SCRIPT: &str = r#"
         overflow: auto; /* Enable scroll if needed */
         background-color: rgb(0,0,0); /* Fallback color */
         background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
     }
 
     .modal-content {
+        border-radius: 20px;
+        elevation: 5;
         background-color: #fefefe;
-        margin: 15% auto; /* 15% from the top and centered */
         padding: 20px;
         border: 1px solid #888;
+        width: fit-content;
+        max-width: 80%; /* Limit width to 80% of the viewport */
     }
 
     .close {
@@ -202,7 +206,7 @@ const SCRIPT: &str = r#"
     document.addEventListener('mouseup', function() {
         const selectedText = getSelectedText();
         if (selectedText) {
-            console.log('Selected text:', selectedText);
+            window.translate(selectedText);
         }
     });
 
@@ -238,17 +242,15 @@ const SCRIPT: &str = r#"
     }
 
     window.addEventListener('DOMContentLoaded', function () {
-        window.translate = function(element) {
+        window.translate = function(text) {
             container.style.display = 'none';
             loader.start();
             loader.show();
-            modal.style.display = 'block';
+            modal.style.display = 'flex';
             window.currentAudioBlob = undefined;
-            const text = stripPuncs(element.innerText);
             getTranslation(text, language).then(translated_text => {
                 original.innerText = text;
                 translation.innerText = translated_text;
-                window.currentAudioBlob = 
                 getSpeechFromText(text, language).then(audioBlob => {
                     window.currentAudioBlob = audioBlob;
                     loader.stop();
@@ -348,7 +350,7 @@ pub fn wrap_words_in_paragraphs(html: &str, language: &str) -> String {
                     modified_p_text.push(c);
                 } else {
                     if !inside_word {
-                        modified_p_text.push_str("<span onclick=\"window.translate(this)\">");
+                        modified_p_text.push_str("<span onclick=\"window.translate(this.innerText)\">");
                         inside_word = true;
                     }
                     modified_p_text.push(c);
