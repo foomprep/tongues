@@ -241,25 +241,23 @@ const SCRIPT: &str = r#"
         }
     }
 
-    window.addEventListener('DOMContentLoaded', function () {
-        window.translate = function(text) {
-            container.style.display = 'none';
-            loader.start();
-            loader.show();
-            modal.style.display = 'flex';
-            window.currentAudioBlob = undefined;
-            getTranslation(text, language).then(translated_text => {
-                original.innerText = text;
-                translation.innerText = translated_text;
-                getSpeechFromText(text, language).then(audioBlob => {
-                    window.currentAudioBlob = audioBlob;
-                    loader.stop();
-                    loader.hide();
-                    container.style.display = 'block';
-                });
+    window.translate = function(text) {
+        container.style.display = 'none';
+        loader.start();
+        loader.show();
+        modal.style.display = 'flex';
+        window.currentAudioBlob = undefined;
+        getTranslation(text, language).then(translated_text => {
+            original.innerText = text;
+            translation.innerText = translated_text;
+            getSpeechFromText(text, language).then(audioBlob => {
+                window.currentAudioBlob = audioBlob;
+                loader.stop();
+                loader.hide();
+                container.style.display = 'block';
             });
-        }
-    });
+        });
+    }
 
 </script>"#;
 
@@ -315,7 +313,7 @@ pub fn wrap_words_in_paragraphs(html: &str, language: &str) -> String {
                     current_span.push(c);
                     if current_span.ends_with("</span>") {
                         // Wrap the existing span content
-                        span_buffer.push_str(&format!("<span onclick=\"window.translate(this)\">{}</span>", current_span));
+                        span_buffer.push_str(&format!("<span onclick=\"window.translate(this.innerText)\">{}</span>", current_span));
                         modified_p_text.push_str(&span_buffer);
                         span_buffer.clear();
                         inside_span = false;
