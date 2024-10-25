@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
-
-window.translate = async (text: string) => {
-  console.log('clicked ', text);
-}
+import './output.css'
+import './App.css'
 
 interface Chapter {
   title: string;
@@ -15,6 +13,14 @@ interface Chapter {
 function App() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [currentChapter, setCurrentChapter] = useState<number>(0);
+  const [modalText, setModalText] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  window.translate = async (text: string) => {
+    console.log('clicked ', text);
+    setModalText(text);
+    setIsModalOpen(true);
+  }
 
   const handleFileOpen = async () => {
     try {
@@ -104,6 +110,21 @@ function App() {
           )}
         </main>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg">
+            <h2 className="text-xl font-bold mb-4">Translation</h2>
+            <p>{modalText}</p>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
