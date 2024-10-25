@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
 
-window.translate = async () => {
-  console.log('window function');
+window.translate = async (text: string) => {
+  console.log('clicked ', text);
 }
 
 interface Chapter {

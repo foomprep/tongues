@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 
 use scraper::{Html, Selector, ElementRef};
 
-pub fn wrap_words_with_translate(html: &str) -> String {
+fn wrap_words_with_translate(html: &str) -> String {
     // Parse the HTML string
     let fragment = Html::parse_fragment(html);
     
