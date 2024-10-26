@@ -10,6 +10,10 @@ interface Chapter {
   index: number;
 }
 
+interface Translation {
+  text: string;
+}
+
 function App() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [currentChapter, setCurrentChapter] = useState<number>(0);
@@ -17,7 +21,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   window.translate = async (text: string) => {
-    const result = await invoke<String>('get_translation', {
+    const translation = await invoke<Translation>('get_translation', {
       text,
       sourceLanguage: "French",
       targetLanguage: "English",

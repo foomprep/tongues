@@ -1,7 +1,7 @@
 use epub::doc::EpubDoc;
 use serde::{Serialize, Deserialize};
 use reqwest::Client;
-use serde_json::json;
+use serde_json::{json, Value};
 
 use scraper::{Html, Selector, ElementRef};
 
@@ -142,8 +142,13 @@ async fn read_epub(path: String) -> Result<Vec<Chapter>, String> {
     Ok(chapters)
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct Translation {
+    text: String,
+}
+
 #[tauri::command]
-async fn get_translation(text: String, source_language: String, target_language: String) -> Result<String, String> {
+async fn get_translation(text: String, source_language: String, target_language: String) -> Result<Translation, String> {
     let client = Client::new();
     let api_key = std::env::var("ANTHROPIC_API_KEY").map_err(|e| e.to_string())?;
     let prompt = format!("Translate the text from the source language to the target language.  Only return the translated text. 
@@ -173,7 +178,12 @@ Target Language: {}
         .map_err(|e| e.to_string())?;
 
     let response_text = response.text().await.map_err(|e| e.to_string())?;
-    Ok(response_text)
+    let response_json: Value = serde_json::from_str(&response_text).map_err(|e| e.to_string())?;
+    let translation = Translation {
+        text: response_json["content"][0]["text"].to_string(),
+    };
+
+    Ok(translation)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
