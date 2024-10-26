@@ -17,7 +17,12 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   window.translate = async (text: string) => {
-    console.log('clicked ', text);
+    const result = await invoke<String>('get_translation', {
+      text,
+      sourceLanguage: "French",
+      targetLanguage: "English",
+    });
+    console.log(result);
     setModalText(text);
     setIsModalOpen(true);
   }

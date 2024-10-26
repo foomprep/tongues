@@ -1,5 +1,7 @@
 use epub::doc::EpubDoc;
 use serde::{Serialize, Deserialize};
+use reqwest::Client;
+use serde_json::json;
 
 use scraper::{Html, Selector, ElementRef};
 
@@ -140,13 +142,46 @@ async fn read_epub(path: String) -> Result<Vec<Chapter>, String> {
     Ok(chapters)
 }
 
+#[tauri::command]
+async fn get_translation(text: String, source_language: String, target_language: String) -> Result<String, String> {
+    let client = Client::new();
+    let api_key = std::env::var("ANTHROPIC_API_KEY").map_err(|e| e.to_string())?;
+    let prompt = format!("Translate the text from the source language to the target language.  Only return the translated text. 
+
+Text: {}
+Source Language: {}
+Target Language: {}
+", &text, &source_language, &target_language);
+
+    let response = client
+        .post("https://api.anthropic.com/v1/messages")
+        .header("Content-Type", "application/json")
+        .header("X-API-Key", api_key)
+        .header("anthropic-version", "2023-06-01")
+        .json(&json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 100,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ]
+        }))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let response_text = response.text().await.map_err(|e| e.to_string())?;
+    Ok(response_text)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![read_epub])
+        .invoke_handler(tauri::generate_handler![read_epub, get_translation])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-

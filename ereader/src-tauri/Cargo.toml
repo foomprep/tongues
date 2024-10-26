@@ -28,4 +28,5 @@ xml = "0.8.20"
 epub = "2.1.2"
 scraper = "0.20.0"
 selectors = "0.26.0"
+reqwest = { version = "0.12.8", features = ["json"] }
 
