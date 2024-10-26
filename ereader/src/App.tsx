@@ -60,7 +60,7 @@ function App() {
         <h1 className="text-2xl font-bold">EPUB Reader</h1>
         <div className="flex gap-4">
           <button
-            onClick={handleFileOpen}
+            onClick={handleFileOpen} 
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Open EPUB
@@ -122,8 +122,14 @@ function App() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg">
+        <div
+          className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white p-6 rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-xl font-bold mb-4">Translation</h2>
             <p>{modalText}</p>
             <p>{translation}</p>
