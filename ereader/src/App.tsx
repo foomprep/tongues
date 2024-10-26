@@ -19,6 +19,7 @@ function App() {
   const [currentChapter, setCurrentChapter] = useState<number>(0);
   const [modalText, setModalText] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [translation, setTranslation] = useState<string>('');
 
   window.translate = async (text: string) => {
     const translation = await invoke<Translation>('get_translation', {
@@ -26,7 +27,7 @@ function App() {
       sourceLanguage: "French",
       targetLanguage: "English",
     });
-    console.log(result);
+    setTranslation(translation.text);
     setModalText(text);
     setIsModalOpen(true);
   }
@@ -125,6 +126,7 @@ function App() {
           <div className="bg-white p-6 rounded-lg">
             <h2 className="text-xl font-bold mb-4">Translation</h2>
             <p>{modalText}</p>
+            <p>{translation}</p>
             <button
               onClick={() => setIsModalOpen(false)}
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
