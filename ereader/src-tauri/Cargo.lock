@@ -1095,6 +1095,7 @@ name = "ereader"
 version = "0.1.0"
 dependencies = [
  "epub",
+ "quick-xml 0.36.2",
  "reqwest",
  "scraper",
  "selectors 0.26.0",

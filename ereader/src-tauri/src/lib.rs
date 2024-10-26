@@ -1,9 +1,16 @@
+pub mod utils;
+pub mod completions;
+
+use std::path::Path;
+
 use epub::doc::EpubDoc;
 use serde::{Serialize, Deserialize};
 use reqwest::Client;
 use serde_json::{json, Value};
 
 use scraper::{Html, Selector, ElementRef};
+use crate::utils::get_epub_language;
+use crate::completions::query_haiku;
 
 fn wrap_words_with_translate(html: &str) -> String {
     // Parse the HTML string
@@ -118,8 +125,20 @@ struct Chapter {
     index: usize,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct Book {
+    chapters: Vec<Chapter>,
+    language: String,
+}
+
 #[tauri::command]
-async fn read_epub(path: String) -> Result<Vec<Chapter>, String> {
+async fn read_epub(path: String) -> Result<Book, String> {
+    let language = match get_epub_language(Path::new(&path)).map_err(|e| format!("{:?}", e)).unwrap() {
+        Some(l) => l,
+        // TODO should notify user ask for lagnuage on frontend
+        None => "Could not determine language.".to_string(),
+    };
+
     let mut doc = match EpubDoc::new(&path) {
         Ok(doc) => doc,
         Err(e) => return Err(format!("Failed to open EPUB: {}", e)),
@@ -138,8 +157,13 @@ async fn read_epub(path: String) -> Result<Vec<Chapter>, String> {
             });
         }
     }
+
+    let book = Book {
+        chapters,
+        language,
+    };
     
-    Ok(chapters)
+    Ok(book)
 }
 
 #[derive(Debug, Serialize, Deserialize)]

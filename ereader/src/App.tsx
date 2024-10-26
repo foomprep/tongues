@@ -10,12 +10,18 @@ interface Chapter {
   index: number;
 }
 
+interface Book {
+  chapters: Chapter[];
+  language: string;
+}
+
 interface Translation {
   text: string;
 }
 
 function App() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [language, setLanguage] = useState<string>('');
   const [currentChapter, setCurrentChapter] = useState<number>(0);
   const [modalText, setModalText] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -33,6 +39,7 @@ function App() {
   }
 
   const handleFileOpen = async () => {
+    console.log('handleFileOpen');
     try {
       const selected = await open({
         filters: [{
@@ -43,10 +50,13 @@ function App() {
       });
 
       if (selected) {
-        const result = await invoke<Chapter[]>('read_epub', { 
+        const book = await invoke<Book>('read_epub', { 
           path: selected as string 
         });
-        setChapters(result);
+        // TODO only use setBook
+        setChapters(book.chapters);
+        setLanguage(book.language);
+        console.log(book);
         setCurrentChapter(0);
       }
     } catch (error) {
