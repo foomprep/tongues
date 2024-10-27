@@ -31,6 +31,8 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [translation, setTranslation] = useState<string>('');
   const [audioBlob, setAudioBlob] = useState<Blob>(new Blob([]));
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
+  const [languageSelectOpen, setLanguageSelectOpen] = useState<boolean>(false);
 
   const playAudio = async () => {
     try {
@@ -42,6 +44,34 @@ function App() {
     } catch (err: any) {
       console.error("Could not play audio", err);
     }
+  }
+
+  const handleLanguageSelect = async (e: any) => {
+    await setBook({
+      ...book,
+      language: selectedLanguage
+    });
+    window.translate = async (text: string) => {
+      console.log('window translate');
+      const translation = await invoke<Translation>('get_translation', {
+        text,
+        sourceLanguage: selectedLanguage,
+        targetLanguage: "English",
+      });
+      const audio = await invoke<Audio>('synthesize_speech', {
+        text,
+        language: selectedLanguage,
+      });
+
+      const blob = new Blob([new Uint8Array(audio.data)], { 
+        type: audio.mimeType 
+      });
+      setAudioBlob(blob);
+      setTranslation(translation.text);
+      setModalText(text);
+      setIsModalOpen(true);
+    } 
+    setLanguageSelectOpen(false);
   }
 
   const handleFileOpen = async () => {
@@ -58,32 +88,32 @@ function App() {
         const modifiedBook = await invoke<Book>('read_epub', { 
           path: selected as string 
         });
-
-        if (modifiedBook.language === "unknown") {
-          // TODO get user input on language
-        }
-
-        window.translate = async (text: string) => {
-          const translation = await invoke<Translation>('get_translation', {
-            text,
-            sourceLanguage: modifiedBook.language,
-            targetLanguage: "English",
-          });
-          const audio = await invoke<Audio>('synthesize_speech', {
-            text,
-            language: modifiedBook.language,
-          });
-    
-          const blob = new Blob([new Uint8Array(audio.data)], { 
-            type: audio.mimeType 
-          });
-          setAudioBlob(blob);
-          setTranslation(translation.text);
-          setModalText(text);
-          setIsModalOpen(true);
-        }
-
         setBook(modifiedBook);
+
+        if (modifiedBook.language !== "unknown") {
+          window.translate = async (text: string) => {
+            const translation = await invoke<Translation>('get_translation', {
+              text,
+              sourceLanguage: modifiedBook.language,
+              targetLanguage: "English",
+            });
+            const audio = await invoke<Audio>('synthesize_speech', {
+              text,
+              language: modifiedBook.language,
+            });
+      
+            const blob = new Blob([new Uint8Array(audio.data)], { 
+              type: audio.mimeType 
+            });
+            setAudioBlob(blob);
+            setTranslation(translation.text);
+            setModalText(text);
+            setIsModalOpen(true);
+          }
+        } else {
+          setLanguageSelectOpen(true);
+        }
+
         setCurrentChapter(0);
       }
     } catch (error) {
@@ -160,7 +190,7 @@ function App() {
             </main>
           </div>
 
-          {isModalOpen && (
+           {isModalOpen && (
             <div
               className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center"
               onClick={() => setIsModalOpen(false)}
@@ -187,7 +217,31 @@ function App() {
               </div>
             </div>
           )}
-        </div>
+          {languageSelectOpen && ( 
+            <div
+              className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center"
+            >
+              <div className="bg-white p-6 rounded-lg shadow-lg">
+                <h2 className="text-xl font-bold mb-4">Select Language</h2>
+                <select
+                  className="w-full p-2 mb-4 border rounded"
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                >
+                  <option value="">Choose a language</option>
+                  <option value="en">English</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                  <option value="de">German</option>
+                </select>
+                <button onClick={handleLanguageSelect} className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                  Start Reading
+                </button>
+              </div>
+            </div>
+          )}
+
+       </div>
       }
     </div>
   );
