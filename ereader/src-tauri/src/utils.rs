@@ -40,3 +40,5 @@ let language = response["content"][0]["text"].to_string().replace("\"", "");
         Ok(Some(language))
     }
 }
+
+

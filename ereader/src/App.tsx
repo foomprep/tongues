@@ -25,8 +25,21 @@ function App() {
   const [modalText, setModalText] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [translation, setTranslation] = useState<string>('');
+  const [audioBlob, setAudioBlob] = useState<Blob>(new Blob([]));
 
-    const handleFileOpen = async () => {
+  const playAudio = async () => {
+    try {
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      const result = await invoke('play_mp3', {
+        mp3Data: Array.from(bytes)
+      })
+    } catch (err: any) {
+      console.error("Could not play audio", err);
+    }
+  }
+
+  const handleFileOpen = async () => {
     try {
       const selected = await open({
         filters: [{
@@ -40,12 +53,22 @@ function App() {
         const modifiedBook = await invoke<Book>('read_epub', { 
           path: selected as string 
         });
+
         window.translate = async (text: string) => {
           const translation = await invoke<Translation>('get_translation', {
             text,
             sourceLanguage: modifiedBook.language,
             targetLanguage: "English",
           });
+          const audio = await invoke<null>('synthesize_speech', {
+            text,
+            language: modifiedBook.language,
+          });
+    
+          const blob = new Blob([new Uint8Array(audio.data)], { 
+            type: audio.mime_type 
+          });
+          setAudioBlob(blob);
           setTranslation(translation.text);
           setModalText(text);
           setIsModalOpen(true);
@@ -141,8 +164,14 @@ function App() {
                 <p>{modalText}</p>
                 <p>{translation}</p>
                 <button
+                  onClick={playAudio}
+                  className="mt-4 mr-2 px-4 py-2 bg-green-500 rounded hover:bg-green-600"
+                >
+                  Play
+                </button>
+                <button
                   onClick={() => setIsModalOpen(false)}
-                  className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="mt-4 px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
                 >
                   Close
                 </button>

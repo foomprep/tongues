@@ -3,13 +3,24 @@ pub mod completions;
 
 use std::path::Path;
 
+use aws_config::BehaviorVersion;
 use epub::doc::EpubDoc;
 use serde::{Serialize, Deserialize};
 use reqwest::Client;
 use serde_json::{json, Value};
+use aws_sdk_polly::Client as PollyClient;
+use aws_sdk_polly::types::{VoiceId, OutputFormat::Mp3};
+use rodio::{Decoder, OutputStream, Sink};
+use std::io::Cursor;
 
 use scraper::{Html, Selector, ElementRef};
 use crate::utils::get_epub_language;
+
+#[derive(Serialize)]
+struct BinaryResponse {
+    data: Vec<u8>,
+    mime_type: String,
+}
 
 fn wrap_words_with_translate(html: &str) -> String {
     // Parse the HTML string
@@ -203,10 +214,54 @@ Target Language: {}
     let response_text = response.text().await.map_err(|e| e.to_string())?;
     let response_json: Value = serde_json::from_str(&response_text).map_err(|e| e.to_string())?;
     let translation = Translation {
-        text: response_json["content"][0]["text"].to_string(),
+        text: response_json["content"][0]["text"].to_string().replace("\"", ""),
     };
 
     Ok(translation)
+}
+
+#[tauri::command]
+async fn synthesize_speech(text: &str, language: &str) -> Result<BinaryResponse, String> {
+    let config = aws_config::load_defaults(BehaviorVersion::v2024_03_28()).await;
+    let client = PollyClient::new(&config);
+    
+    let voice_id = match language {
+        "en" => VoiceId::Matthew,
+        "es" => VoiceId::Miguel,
+        "fr" => VoiceId::Mathieu,
+        _ => return Err("Unsupported language".into()),
+    };
+
+    let output = client.synthesize_speech()
+        .output_format(Mp3)
+        .text(text)
+        .voice_id(voice_id)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let audio_stream = output.audio_stream;
+    let data = audio_stream.collect().await.map_err(|e| e.to_string())?;
+
+    Ok(BinaryResponse {
+        data: data.to_vec(),
+        mime_type: "audio/mp3".to_string(),
+    })
+}
+
+
+#[tauri::command]
+fn play_mp3(mp3_data: Vec<u8>) -> Result<(), String> {
+    let (_stream, stream_handle) = OutputStream::try_default().map_err(|e| e.to_string())?;
+    let sink = Sink::try_new(&stream_handle).map_err(|e| e.to_string())?;
+
+    let cursor = Cursor::new(mp3_data);
+    let source = Decoder::new(cursor).map_err(|e| e.to_string())?;
+
+    sink.append(source);
+    sink.sleep_until_end();
+
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -214,7 +269,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![read_epub, get_translation])
+        .invoke_handler(tauri::generate_handler![read_epub, get_translation, synthesize_speech, play_mp3])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
