@@ -36,7 +36,6 @@ let language = response["content"][0]["text"].to_string().replace("\"", "");
     if language == "unknown" {
         Ok(None)
     } else {
-        println!("{}", language);
         Ok(Some(language))
     }
 }

@@ -19,6 +19,11 @@ interface Translation {
   text: string;
 }
 
+interface Audio {
+  audio: Uint8Array;
+  mimeType: string;
+}
+
 function App() {
   const [book, setBook] = useState<Book | null>()
   const [currentChapter, setCurrentChapter] = useState<number>(0);
@@ -60,7 +65,7 @@ function App() {
             sourceLanguage: modifiedBook.language,
             targetLanguage: "English",
           });
-          const audio = await invoke<null>('synthesize_speech', {
+          const audio = await invoke<Audio>('synthesize_speech', {
             text,
             language: modifiedBook.language,
           });
