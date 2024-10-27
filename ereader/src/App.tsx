@@ -20,7 +20,7 @@ interface Translation {
 }
 
 interface Audio {
-  audio: Uint8Array;
+  data: Uint8Array;
   mimeType: string;
 }
 
@@ -59,6 +59,10 @@ function App() {
           path: selected as string 
         });
 
+        if (modifiedBook.language === "unknown") {
+          // TODO get user input on language
+        }
+
         window.translate = async (text: string) => {
           const translation = await invoke<Translation>('get_translation', {
             text,
@@ -71,7 +75,7 @@ function App() {
           });
     
           const blob = new Blob([new Uint8Array(audio.data)], { 
-            type: audio.mime_type 
+            type: audio.mimeType 
           });
           setAudioBlob(blob);
           setTranslation(translation.text);
