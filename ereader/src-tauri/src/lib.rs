@@ -10,7 +10,6 @@ use serde_json::{json, Value};
 
 use scraper::{Html, Selector, ElementRef};
 use crate::utils::get_epub_language;
-use crate::completions::query_haiku;
 
 fn wrap_words_with_translate(html: &str) -> String {
     // Parse the HTML string
@@ -133,7 +132,7 @@ struct Book {
 
 #[tauri::command]
 async fn read_epub(path: String) -> Result<Book, String> {
-    let language = match get_epub_language(Path::new(&path)).map_err(|e| format!("{:?}", e)).unwrap() {
+    let language = match get_epub_language(Path::new(&path)).await.unwrap() {
         Some(l) => l,
         // TODO should notify user ask for lagnuage on frontend
         None => "Could not determine language.".to_string(),
