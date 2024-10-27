@@ -22,6 +22,7 @@ struct BinaryResponse {
     mime_type: String,
 }
 
+// TODO this function does not seem to wrap all words for given epubs ???
 fn wrap_words_with_translate(html: &str) -> String {
     // Parse the HTML string
     let fragment = Html::parse_fragment(html);
