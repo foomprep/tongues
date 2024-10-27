@@ -147,7 +147,7 @@ function App() {
             </button>
             
             <button
-              onClick={() => setCurrentChapter(Math.min(chapters.length - 1, currentChapter + 1))}
+              onClick={() => setCurrentChapter(Math.min(book.chapters.length - 1, currentChapter + 1))}
               disabled={currentChapter === book.chapters.length - 1}
               className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
             >
