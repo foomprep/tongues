@@ -20,8 +20,7 @@ interface Translation {
 }
 
 function App() {
-  const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [language, setLanguage] = useState<string>('');
+  const [book, setBook] = useState<Book | null>()
   const [currentChapter, setCurrentChapter] = useState<number>(0);
   const [modalText, setModalText] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -39,7 +38,6 @@ function App() {
   }
 
   const handleFileOpen = async () => {
-    console.log('handleFileOpen');
     try {
       const selected = await open({
         filters: [{
@@ -53,10 +51,7 @@ function App() {
         const book = await invoke<Book>('read_epub', { 
           path: selected as string 
         });
-        // TODO only use setBook
-        setChapters(book.chapters);
-        setLanguage(book.language);
-        console.log(book);
+        setBook(book);
         setCurrentChapter(0);
       }
     } catch (error) {
@@ -98,7 +93,7 @@ function App() {
         <aside className="w-64 shrink-0">
           <h2 className="text-xl font-bold mb-4">Chapters</h2>
           <nav className="space-y-2">
-            {chapters.map((chapter, index) => (
+            {book.chapters.map((chapter, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentChapter(index)}
@@ -115,7 +110,7 @@ function App() {
         </aside>
 
         <main className="flex-1">
-          {chapters.length > 0 ? (
+          {book.chapters.length > 0 ? (
             <div className="prose max-w-none">
               <div 
                 dangerouslySetInnerHTML={{ 

@@ -135,7 +135,7 @@ async fn read_epub(path: String) -> Result<Book, String> {
     let language = match get_epub_language(Path::new(&path)).await.unwrap() {
         Some(l) => l,
         // TODO should notify user ask for lagnuage on frontend
-        None => "Could not determine language.".to_string(),
+        None => "unknown".to_string(),
     };
 
     let mut doc = match EpubDoc::new(&path) {

@@ -21,21 +21,22 @@ pub async fn get_epub_language(epub_path: &Path) -> Result<Option<String>, Strin
     }
 
     // Truncate content if it's too long
-    //if content.len() > 1000 {
-    //    content.truncate(1000);
-    //}
+    if content.len() > 5000 {
+        content.truncate(5000);
+    }
 
     // Create prompt for language detection
     let prompt = format!("You are a language detector. You will be given an html string and will determine the language of the page. If unable to determine, respond with only word unknown, otherwise only return the language. \n\nHtml: {}\n", content);
 
     // Query Haiku for language detection
     let response = query_haiku(&prompt).await.map_err(|e| e.to_string())?;
-    let language = response["content"][0]["text"].to_string();
+let language = response["content"][0]["text"].to_string().replace("\"", "");
 
     // Return the detected language, or None if it's "unknown"
-    if language == "unkown" {
+    if language == "unknown" {
         Ok(None)
     } else {
+        println!("{}", language);
         Ok(Some(language))
     }
 }
