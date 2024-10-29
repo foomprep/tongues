@@ -88,6 +88,7 @@ function App() {
         const modifiedBook = await invoke<Book>('read_epub', { 
           path: selected as string 
         });
+        console.log("book", book);
         setBook(modifiedBook);
 
         if (modifiedBook.language !== "unknown") {
@@ -137,23 +138,7 @@ function App() {
 
       { book &&
         <div>
-          <div className="flex gap-6">
-            <button
-              onClick={() => setCurrentChapter(Math.max(0, currentChapter - 1))}
-              disabled={currentChapter === 0}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            
-            <button
-              onClick={() => setCurrentChapter(Math.min(book.chapters.length - 1, currentChapter + 1))}
-              disabled={currentChapter === book.chapters.length - 1}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
-            >
-              Next
-            </button>
-
+          <div className="flex items-center justify-center gap-6">
             <aside className="w-64 shrink-0">
               <h2 className="text-xl font-bold mb-4">Chapters</h2>
               <nav className="space-y-2">
@@ -173,6 +158,16 @@ function App() {
               </nav>
             </aside>
 
+            <button
+              onClick={() => setCurrentChapter(Math.max(0, currentChapter - 1))}
+              disabled={currentChapter === 0}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
             <main className="flex-1">
               {book.chapters.length > 0 ? (
                 <div className="prose max-w-none">
@@ -188,9 +183,18 @@ function App() {
                 </div>
               )}
             </main>
-          </div>
 
-           {isModalOpen && (
+            <button
+              onClick={() => setCurrentChapter(Math.min(book.chapters.length - 1, currentChapter + 1))}
+              disabled={currentChapter === book.chapters.length - 1}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+          { isModalOpen && (
             <div
               className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center"
               onClick={() => setIsModalOpen(false)}
@@ -217,7 +221,7 @@ function App() {
               </div>
             </div>
           )}
-          {languageSelectOpen && ( 
+          { languageSelectOpen && ( 
             <div
               className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center"
             >
@@ -240,11 +244,12 @@ function App() {
               </div>
             </div>
           )}
-
-       </div>
+        </div>
       }
     </div>
+
   );
+
 }
 
 export default App;
