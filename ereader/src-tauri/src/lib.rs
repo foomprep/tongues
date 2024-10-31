@@ -13,6 +13,8 @@ use aws_sdk_polly::types::{VoiceId, OutputFormat::Mp3};
 use rodio::{Decoder, OutputStream, Sink};
 use std::io::Cursor;
 
+use anyhow::{Result, Context};
+
 use scraper::{Html, Selector, ElementRef};
 use crate::utils::get_epub_language;
 
@@ -129,53 +131,51 @@ fn wrap_words_with_translate(html: &str) -> String {
     output
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 struct Chapter {
     title: String,
     content: String,
-    index: usize,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 struct Book {
+    title: String,
     chapters: Vec<Chapter>,
-    language: String,
 }
 
 #[tauri::command]
-async fn read_epub(path: String) -> Result<Book, String> {
-    let language = match get_epub_language(Path::new(&path)).await.unwrap() {
-        Some(l) => l,
-        // TODO should notify user ask for lagnuage on frontend
-        None => "unknown".to_string(),
-    };
+async fn parse_epub(epub_path: String) -> Result<Book, String> {
+    let mut doc = EpubDoc::new(epub_path)
+        .map_err(|e| e.to_string())?;
+    let toc = doc.toc.clone();
+    let mut chapters = Vec::<Chapter>::new();
+    for nav_point in toc {
+        let title = nav_point.label;
+        let content = match doc.get_resource_str_by_path(nav_point.content) {
+            Some(content_str) => content_str,
+            None => "".to_string(),
+        };
 
-    let mut doc = match EpubDoc::new(&path) {
-        Ok(doc) => doc,
-        Err(e) => return Err(format!("Failed to open EPUB: {}", e)),
-    };
-    
-    let mut chapters = Vec::new();
-    let spine = doc.spine.clone();
-    
-    for (index, item) in spine.iter().enumerate() {
-        if let Some((content, _mimetype)) = doc.get_resource_str(&item) {
-            let modified_content = wrap_words_with_translate(&content);
-            chapters.push(Chapter {
-                title: format!("Chapter {}", index + 1),
-                content: modified_content,
-                index,
-            });
-        }
+        let chapter = Chapter {
+            title,
+            content,
+        };
+        chapters.push(chapter); 
     }
 
-    let book = Book {
-        chapters,
-        language,
+    let title = match doc.mdata("title") {
+        Some(t) => t,
+        None => "Unknown title".to_string(),
     };
-    
+
+    let book = Book {
+        title,
+        chapters,
+    };
+
     Ok(book)
 }
+
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Translation {
@@ -250,7 +250,6 @@ async fn synthesize_speech(text: &str, language: &str) -> Result<BinaryResponse,
     })
 }
 
-
 #[tauri::command]
 fn play_mp3(mp3_data: Vec<u8>) -> Result<(), String> {
     let (_stream, stream_handle) = OutputStream::try_default().map_err(|e| e.to_string())?;
@@ -270,7 +269,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![read_epub, get_translation, synthesize_speech, play_mp3])
+        .invoke_handler(tauri::generate_handler![parse_epub, get_translation, synthesize_speech, play_mp3])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

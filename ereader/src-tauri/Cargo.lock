@@ -1564,6 +1564,7 @@ dependencies = [
 name = "ereader"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "aws-config",
  "aws-sdk-polly",
  "epub",
