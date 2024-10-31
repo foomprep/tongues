@@ -137,7 +137,7 @@ function App() {
 
       { book &&
         <div>
-          <div className="flex items-center justify-center gap-6">
+          <div className="flex gap-6">
             <aside className="w-64 shrink-0">
               <h2 className="text-xl font-bold mb-4">Chapters</h2>
               <nav className="space-y-2">
