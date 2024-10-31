@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { open } from '@tauri-apps/plugin-dialog';
-import { invoke } from '@tauri-apps/api/core';
+import { useState } from 'react'
+import { open } from '@tauri-apps/plugin-dialog'
+import { invoke } from '@tauri-apps/api/core'
+import Spinner from './Spinner.tsx'
 import './output.css'
 import './App.css'
 
@@ -30,6 +31,7 @@ function App() {
   const [modalText, setModalText] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [translation, setTranslation] = useState<string>('');
+  const [translationLoading, setTranslationLoading] = useState<boolean>(false);
   const [audioBlob, setAudioBlob] = useState<Blob>(new Blob([]));
   const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
   const [languageSelectOpen, setLanguageSelectOpen] = useState<boolean>(false);
@@ -46,33 +48,39 @@ function App() {
     }
   }
 
+  const createTranslateFunction = (selectedLanguage: string) => (text: string) => {
+    console.log('createTranslateFunction');
+    setTranslationLoading(true);
+    setIsModalOpen(true);
+    invoke<Translation>('get_translation', {
+      text,
+      sourceLanguage: selectedLanguage,
+      targetLanguage: "English",
+    }).then(translation => {
+        setTranslation(translation.text);
+    });
+    invoke<Audio>('synthesize_speech', {
+      text,
+      language: selectedLanguage,
+    }).then(audio => {
+      const blob = new Blob([new Uint8Array(audio.data)], { 
+        type: audio.mimeType 
+      });
+      setAudioBlob(blob);
+      setModalText(text);
+      setTranslationLoading(false);
+    });
+  };
+
   const handleLanguageSelect = async (e: any) => {
     await setBook({
       ...book,
       language: selectedLanguage
     });
-    window.translate = async (text: string) => {
-      console.log('window translate');
-      const translation = await invoke<Translation>('get_translation', {
-        text,
-        sourceLanguage: selectedLanguage,
-        targetLanguage: "English",
-      });
-      const audio = await invoke<Audio>('synthesize_speech', {
-        text,
-        language: selectedLanguage,
-      });
-
-      const blob = new Blob([new Uint8Array(audio.data)], { 
-        type: audio.mimeType 
-      });
-      setAudioBlob(blob);
-      setTranslation(translation.text);
-      setModalText(text);
-      setIsModalOpen(true);
-    } 
+    window.translate = createTranslateFunction(selectedLanguage);
     setLanguageSelectOpen(false);
   }
+
 
   const handleFileOpen = async () => {
     try {
@@ -91,25 +99,7 @@ function App() {
         setBook(modifiedBook);
 
         if (modifiedBook.language !== "unknown") {
-          window.translate = async (text: string) => {
-            const translation = await invoke<Translation>('get_translation', {
-              text,
-              sourceLanguage: modifiedBook.language,
-              targetLanguage: "English",
-            });
-            const audio = await invoke<Audio>('synthesize_speech', {
-              text,
-              language: modifiedBook.language,
-            });
-      
-            const blob = new Blob([new Uint8Array(audio.data)], { 
-              type: audio.mimeType 
-            });
-            setAudioBlob(blob);
-            setTranslation(translation.text);
-            setModalText(text);
-            setIsModalOpen(true);
-          }
+          window.translate = createTranslateFunction(modifiedBook.language);
         } else {
           setLanguageSelectOpen(true);
         }
@@ -175,32 +165,37 @@ function App() {
 
           </div>
           { isModalOpen && (
-            <div
-              className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center"
-              onClick={() => setIsModalOpen(false)}
-            >
+            translationLoading ? (
+              <Spinner />
+            ) : (
               <div
-                className="bg-white p-6 rounded-lg"
-                onClick={(e) => e.stopPropagation()}
+                className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center"
+                onClick={() => setIsModalOpen(false)}
               >
-                <h2 className="text-xl font-bold mb-4">Translation</h2>
-                <p>{modalText}</p>
-                <p>{translation}</p>
-                <button
-                  onClick={playAudio}
-                  className="mt-4 mr-2 px-4 py-2 bg-green-500 rounded hover:bg-green-600"
+                <div
+                  className="bg-white p-6 rounded-lg"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  Play
-                </button>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="mt-4 px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
-                >
-                  Close
-                </button>
+                  <h2 className="text-xl font-bold mb-4">Translation</h2>
+                  <p>{modalText}</p>
+                  <p>{translation}</p>
+                  <button
+                    onClick={playAudio}
+                    className="mt-4 mr-2 px-4 py-2 bg-green-500 rounded hover:bg-green-600"
+                  >
+                    Play
+                  </button>
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="mt-4 px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
-            </div>
+            )
           )}
+
           { languageSelectOpen && ( 
             <div
               className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center"
