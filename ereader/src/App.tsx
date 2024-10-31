@@ -7,10 +7,10 @@ import './App.css'
 interface Chapter {
   title: string;
   content: string;
-  index: number;
 }
 
 interface Book {
+  title: string;
   chapters: Chapter[];
   language: string;
 }

@@ -141,18 +141,25 @@ struct Chapter {
 struct Book {
     title: String,
     chapters: Vec<Chapter>,
+    language: String,
 }
 
 #[tauri::command]
 async fn parse_epub(epub_path: String) -> Result<Book, String> {
-    let mut doc = EpubDoc::new(epub_path)
+    let mut doc = EpubDoc::new(epub_path.clone())
         .map_err(|e| e.to_string())?;
+
+    let language = match get_epub_language(Path::new(&epub_path)).await.map_err(|e| e.to_string())? {
+        Some(l) => l,
+        None => "unknown".to_string(), 
+    };
+
     let toc = doc.toc.clone();
     let mut chapters = Vec::<Chapter>::new();
     for nav_point in toc {
         let title = nav_point.label;
         let content = match doc.get_resource_str_by_path(nav_point.content) {
-            Some(content_str) => content_str,
+            Some(content_str) => wrap_words_with_translate(&content_str),
             None => "".to_string(),
         };
 
@@ -161,8 +168,8 @@ async fn parse_epub(epub_path: String) -> Result<Book, String> {
             content,
         };
         chapters.push(chapter); 
-    }
 
+    }
     let title = match doc.mdata("title") {
         Some(t) => t,
         None => "Unknown title".to_string(),
@@ -171,6 +178,7 @@ async fn parse_epub(epub_path: String) -> Result<Book, String> {
     let book = Book {
         title,
         chapters,
+        language,
     };
 
     Ok(book)

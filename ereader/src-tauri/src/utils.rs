@@ -2,9 +2,10 @@ use std::{io::Read, path::Path};
 use zip::ZipArchive;
 use std::fs::File;
 use crate::completions::query_haiku;
+use std::error::Error;
 
 // TODO implement better error handling
-pub async fn get_epub_language(epub_path: &Path) -> Result<Option<String>, String> {
+pub async fn get_epub_language(epub_path: &Path) -> Result<Option<String>, Box<dyn Error>> {
     // Open the EPUB file
     let file = File::open(epub_path).map_err(|e| e.to_string())?;
     let mut archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
@@ -39,5 +40,4 @@ let language = response["content"][0]["text"].to_string().replace("\"", "");
         Ok(Some(language))
     }
 }
-
 
