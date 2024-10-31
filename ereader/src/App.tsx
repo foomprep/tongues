@@ -157,16 +157,6 @@ function App() {
               </nav>
             </aside>
 
-            <button
-              onClick={() => setCurrentChapter(Math.max(0, currentChapter - 1))}
-              disabled={currentChapter === 0}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
             <main className="flex-1">
               {book.chapters.length > 0 ? (
                 <div className="prose max-w-none">
@@ -183,15 +173,6 @@ function App() {
               )}
             </main>
 
-            <button
-              onClick={() => setCurrentChapter(Math.min(book.chapters.length - 1, currentChapter + 1))}
-              disabled={currentChapter === book.chapters.length - 1}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
           </div>
           { isModalOpen && (
             <div
