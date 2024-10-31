@@ -85,10 +85,9 @@ function App() {
       });
 
       if (selected) {
-        const modifiedBook = await invoke<Book>('read_epub', { 
-          path: selected as string 
+        const modifiedBook = await invoke<Book>('parse_epub', { 
+          epubPath: selected as string 
         });
-        console.log("book", book);
         setBook(modifiedBook);
 
         if (modifiedBook.language !== "unknown") {
