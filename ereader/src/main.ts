@@ -1,15 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
-interface Chapter {
-  title: string;
-  content: string;
+interface ManifestItem {
+    id: string;
+    href: string;
+    media_type: string;
 }
 
-interface Book {
-  title: string;
-  chapters: Chapter[];
-  language: string;
+interface SerializedBook {
+    manifest: Array<[string, ManifestItem]>;
+    spine: string[];
+    contents: [string, string][];
 }
 
 interface Translation {
@@ -84,18 +85,23 @@ window.addEventListener("DOMContentLoaded", () => {
           name: 'EPUB',
           extensions: ['epub']
         }],
-        multiple: false
+        multiple: false,
       }).then(selected => {
+
         openSpinner!.style.display = "block";
         if (selected) {
-          invoke<Book>('parse_epub', {
+          invoke<SerializedBook>('parse_epub', {
             epubPath: selected as string
           }).then(modifiedBook => {
-            console.log(modifiedBook);
             BOOK = modifiedBook;
+
+            let manifestMap = new Map<string, ManifestItem>(modifiedBook.manifest);
+            for (let [key, value] of manifestMap) {
+                console.log(`${key}: ${value}`);
+            }
+
             openSpinner!.style.display = "none";
             contentContainer!.innerHTML = BOOK.chapters[0].content;
-
             bookContainer!.style.display = "flex";
 
             const sideBar: HTMLDivElement | null = document.querySelector("#sidebar");
