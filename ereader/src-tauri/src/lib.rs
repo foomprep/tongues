@@ -31,17 +31,17 @@ use zip::ZipArchive;
 
 #[derive(Debug, Serialize)]
 struct Book {
-    manifest: HashMap<String, ManifestItem>,
-    spine: Vec<String>,
-    contents: HashMap<String, String>,
+    spine: Vec<SpineItem>,
     language: String,
+    css: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
-struct ManifestItem {
+struct SpineItem {
     id: String,
     href: String,
     media_type: String,
+    contents: String,
 }
 
 #[tauri::command]
@@ -61,14 +61,14 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
 
     // Initialize our Book structure
     let mut book = Book {
-        manifest: HashMap::new(),
         spine: Vec::new(),
-        contents: HashMap::new(),
         language,
+        css: Vec::new(),
     };
 
     let parser = EventReader::from_str(&content_opf);
     let mut current_section = None;
+    let mut manifest_items = HashMap::new();
 
     // Parse the OPF file
     for event in parser {
@@ -94,13 +94,9 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
 
                         // Create ManifestItem if we have all required attributes
                         if let (Some(id), Some(href), Some(media_type)) = (id, href, media_type) {
-                            book.manifest.insert(
+                            manifest_items.insert(
                                 id.clone(),
-                                ManifestItem {
-                                    id,
-                                    href,
-                                    media_type,
-                                },
+                                (href, media_type),
                             );
                         }
                     }
@@ -108,7 +104,14 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
                         // Add spine items
                         for attr in attributes {
                             if attr.name.local_name == "idref" {
-                                book.spine.push(attr.value);
+                                if let Some((href, media_type)) = manifest_items.get(&attr.value) {
+                                    book.spine.push(SpineItem {
+                                        id: attr.value,
+                                        href: href.clone(),
+                                        media_type: media_type.clone(),
+                                        contents: String::new(),
+                                    });
+                                }
                             }
                         }
                     }
@@ -124,22 +127,28 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
         }
     }
 
-    // Load contents for each manifest item
-    for item in book.manifest.values() {
+    // Load contents for each spine item and CSS files
+    for (_, (href, media_type)) in &manifest_items {
         let mut content = String::new();
         // Try to read the file content
-        if let Ok(mut file) = archive.by_name(&item.href).map_err(|e| e.to_string()) {
+        if let Ok(mut file) = archive.by_name(href).map_err(|e| e.to_string()) {
             if file.read_to_string(&mut content).map_err(|e| e.to_string()).is_ok() {
-                if item.href.ends_with(".html") || item.href.ends_with(".xhtml") {
-                    content = wrap_words_with_translate(&content);
+                if href.ends_with(".css") {
+                    book.css.push(content);
+                } else if let Some(item) = book.spine.iter_mut().find(|item| &item.href == href) {
+                    if item.href.ends_with(".html") || item.href.ends_with(".xhtml") {
+                        content = wrap_words_with_translate(&content);
+                    }
+                    item.contents = content;
                 }
-                book.contents.insert(item.id.clone(), content);
             }
         }
     }
 
     Ok(book)
 }
+
+
 
 
 fn find_opf_path<R: Read>(container: R) -> Result<String, Box<dyn std::error::Error>> {

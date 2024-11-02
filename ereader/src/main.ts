@@ -1,17 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
-interface ManifestItem {
-  id: string;
-  href: string;
-  media_type: string;
+interface Book {
+    spine: SpineItem[];
+    language: string;
 }
 
-interface Book {
-  manifest: Record<string, ManifestItem>;
-  spine: string[];
-  contents: Record<string, string>;
-  language: string;
+interface SpineItem {
+    id: string;
+    href: string;
+    media_type: string;
+    contents: string;
 }
 
 interface Translation {
