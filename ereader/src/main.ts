@@ -68,33 +68,47 @@ window.addEventListener("DOMContentLoaded", () => {
   const handleLanguageSelect = async (e: any) => {
   }
 
-  const handleFileOpen = async () => {
+  const handleFileOpen = () => {
+    const openSpinner: HTMLDivElement | null = document.querySelector("#open-spinner");
+    const openContainer: HTMLDivElement | null = document.querySelector("#open-container");
+    const bookContainer: HTMLDivElement | null = document.querySelector("#book-container");
+    const contentContainer: HTMLDivElement | null = document.querySelector("#content-container");
+
     try {
-      const selected = await open({
+      openSpinner!.style.display = "block";
+      bookContainer!.style.display = "none";
+      open({
         filters: [{
           name: 'EPUB',
           extensions: ['epub']
         }],
         multiple: false
-      });
+      }).then(selected => {
+        openContainer!.style.display = "none";
+        openSpinner!.style.display = "block";
+        if (selected) {
+          invoke<Book>('parse_epub', {
+            epubPath: selected as string
+          }).then(modifiedBook => {
+            BOOK = modifiedBook;
+            openSpinner!.style.display = "none";
+            contentContainer!.innerHTML = BOOK.chapters[0].content;
+            bookContainer!.style.display = "block";
 
-      if (selected) {
-        const modifiedBook = await invoke<Book>('parse_epub', { 
-          epubPath: selected as string
-        });
-        BOOK = modifiedBook;
-        const contentContainer = document.querySelector("#content-container");
-        contentContainer!.innerHTML = BOOK.chapters[0].content;
-
-        if (modifiedBook.language !== "unknown") {
-          window.translate = createTranslateFunction(modifiedBook.language);
-        } else {
-          const languageSelectContainer: HTMLDivElement | null = document.querySelector("#language-select");
-          languageSelectContainer!.style.display = "flex";
+            if (modifiedBook.language !== "unknown") {
+              window.translate = createTranslateFunction(modifiedBook.language);
+            } else {
+              const languageSelectContainer: HTMLDivElement | null = document.querySelector("#language-select");
+              languageSelectContainer!.style.display = "flex";
+            }
+            CURRENT_CHAPTER = 0;
+          });
         }
-        CURRENT_CHAPTER = 0;
-      }
+      });
     } catch (error) {
+      openSpinner!.style.display = "none";
+      bookContainer!.style.display = "none";
+      openContainer!.style.display = "block";
       console.error('Error opening file:', error);
     }
   };
