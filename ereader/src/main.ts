@@ -68,6 +68,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const handleLanguageSelect = async (e: any) => {
   }
 
+  // TODO if user presses cancel gets stuck in spinner
   const handleFileOpen = () => {
     const openSpinner: HTMLDivElement | null = document.querySelector("#open-spinner");
     const openContainer: HTMLDivElement | null = document.querySelector("#open-container");
@@ -75,6 +76,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const contentContainer: HTMLDivElement | null = document.querySelector("#content-container");
 
     try {
+      openContainer!.style.display = "none";
       openSpinner!.style.display = "block";
       bookContainer!.style.display = "none";
       open({
@@ -84,7 +86,6 @@ window.addEventListener("DOMContentLoaded", () => {
         }],
         multiple: false
       }).then(selected => {
-        openContainer!.style.display = "none";
         openSpinner!.style.display = "block";
         if (selected) {
           invoke<Book>('parse_epub', {
@@ -96,7 +97,14 @@ window.addEventListener("DOMContentLoaded", () => {
             contentContainer!.innerHTML = BOOK.chapters[0].content;
             bookContainer!.style.display = "block";
 
-            const sideBarContainer: HTMLDivElement | null = document.querySelector("#")
+            const sideBar: HTMLDivElement | null = document.querySelector("#sidebar");
+            modifiedBook.chapters.forEach(chapter => {
+              let link = document.createElement("a");
+              link.href = "#";
+              link.textContent = chapter.title;
+              link.className = "block py-2 px-8 text-2xl text-gray-400 hover:text-gray-800 transition-colors duration-300";
+              sideBar!.append(link);
+            });
 
             if (modifiedBook.language !== "unknown") {
               window.translate = createTranslateFunction(modifiedBook.language);
