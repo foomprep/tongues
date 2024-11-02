@@ -2,15 +2,16 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
 interface ManifestItem {
-    id: string;
-    href: string;
-    media_type: string;
+  id: string;
+  href: string;
+  media_type: string;
 }
 
-interface SerializedBook {
-    manifest: Array<[string, ManifestItem]>;
-    spine: string[];
-    contents: [string, string][];
+interface Book {
+  manifest: Record<string, ManifestItem>;
+  spine: string[];
+  contents: Record<string, string>;
+  language: string;
 }
 
 interface Translation {
@@ -90,15 +91,25 @@ window.addEventListener("DOMContentLoaded", () => {
 
         openSpinner!.style.display = "block";
         if (selected) {
-          invoke<SerializedBook>('parse_epub', {
+          invoke<Book>('parse_epub', {
             epubPath: selected as string
           }).then(modifiedBook => {
+            console.log(modifiedBook);
             BOOK = modifiedBook;
 
-            let manifestMap = new Map<string, ManifestItem>(modifiedBook.manifest);
-            for (let [key, value] of manifestMap) {
-                console.log(`${key}: ${value}`);
+                // TODO this is not removed when book i sclosed!
+            for (const [key, value] of Object.entries(modifiedBook.manifest)) {
+              if (value.media_type === "text/css") {
+                const style = document.createElement('style');
+                    console.log(modifiedBook.contents[key]);
+                style.textContent = modifiedBook.contents[key];
+                document.head.appendChild(style);
+              }
             }
+
+            modifiedBook.spine.forEach(spineId => {
+              console.log(modifiedBook.manifest[spineId]);
+            });
 
             openSpinner!.style.display = "none";
             contentContainer!.innerHTML = BOOK.chapters[0].content;

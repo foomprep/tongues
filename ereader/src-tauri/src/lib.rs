@@ -34,6 +34,7 @@ struct Book {
     manifest: HashMap<String, ManifestItem>,
     spine: Vec<String>,
     contents: HashMap<String, String>,
+    language: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -44,9 +45,14 @@ struct ManifestItem {
 }
 
 #[tauri::command]
-fn parse_epub(epub_path: &str) -> Result<Book, String> {
+async fn parse_epub(epub_path: &str) -> Result<Book, String> {
     let file = File::open(epub_path).map_err(|e| e.to_string())?;
     let mut archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
+
+    let language = match get_epub_language(Path::new(&epub_path)).await.map_err(|e| e.to_string())? {
+        Some(l) => l.to_string(),
+        None => "unknown".to_string(),
+    };
 
     let mut content_opf = String::new();
     let container_xml = archive.by_name("META-INF/container.xml").map_err(|e| e.to_string())?;
@@ -58,6 +64,7 @@ fn parse_epub(epub_path: &str) -> Result<Book, String> {
         manifest: HashMap::new(),
         spine: Vec::new(),
         contents: HashMap::new(),
+        language,
     };
 
     let parser = EventReader::from_str(&content_opf);
@@ -123,6 +130,9 @@ fn parse_epub(epub_path: &str) -> Result<Book, String> {
         // Try to read the file content
         if let Ok(mut file) = archive.by_name(&item.href).map_err(|e| e.to_string()) {
             if file.read_to_string(&mut content).map_err(|e| e.to_string()).is_ok() {
+                if item.href.ends_with(".html") || item.href.ends_with(".xhtml") {
+                    content = wrap_words_with_translate(&content);
+                }
                 book.contents.insert(item.id.clone(), content);
             }
         }
