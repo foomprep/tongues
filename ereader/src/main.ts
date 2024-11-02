@@ -26,10 +26,10 @@ let currentChapter: number = 0;
 let audio: Audio | null = null;
 
 window.addEventListener("DOMContentLoaded", () => {
-  const playAudio = async () => {
+  const playAudio = async (audio: Audio) => {
     try {
       invoke('play_mp3', {
-        mp3Data: Array.from(audio!.data)
+        mp3Data: Array.from(audio.data)
       })
     } catch (err: any) {
       console.error("Could not play audio", err);
@@ -42,6 +42,10 @@ window.addEventListener("DOMContentLoaded", () => {
       sourceLanguage: language,
       targetLanguage: "English",
     });
+    const audio = await invoke<Audio>('synthesize_speech', {
+      text,
+      language: language,
+    });
     const translationModal: HTMLDivElement | null = document.querySelector("#translation-modal");
     translationModal!.style.display = "flex";
     const originalText: HTMLDivElement | null = document.querySelector("#original-text");
@@ -49,10 +53,6 @@ window.addEventListener("DOMContentLoaded", () => {
     originalText!.innerText = text;
     translationText!.innerText = translation.text;
    
-    //audio = await invoke<Audio>('synthesize_speech', {
-    //  text,
-    //  language: language,
-    //});
   };
 
   const handleLanguageSelect = async (e: any) => {
@@ -90,8 +90,20 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 
   let openButton = document.querySelector("#open-button");
-  openButton?.addEventListener("click", function(e: any) {
+  openButton?.addEventListener("click", function(_e: any) {
     handleFileOpen();
+  });
+
+  const translationModal: HTMLDivElement | null = document.querySelector("#translation-modal");
+  translationModal?.addEventListener("click", (_e: any) => {
+    translationModal!.style.display = "none";
+  });
+
+  const playButton = document.querySelector("#play-button");
+  playButton?.addEventListener("click", async (_e: any) => {
+    if (audio) {
+      await playAudio(audio);
+    }
   });
 });
 
