@@ -1532,19 +1532,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "epub"
-version = "2.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7425903972972788e21d4a8cbec3589c232cca4fab21d320187a8e452f6465e"
-dependencies = [
- "percent-encoding",
- "regex",
- "thiserror",
- "xml-rs",
- "zip 1.1.4",
-]
-
-[[package]]
 name = "equivalent"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1567,7 +1554,6 @@ dependencies = [
  "anyhow",
  "aws-config",
  "aws-sdk-polly",
- "epub",
  "quick-xml 0.36.2",
  "reqwest",
  "rodio",
@@ -1580,7 +1566,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-shell",
  "xml",
- "zip 2.2.0",
+ "zip",
 ]
 
 [[package]]
@@ -6528,22 +6514,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.86",
-]
-
-[[package]]
-name = "zip"
-version = "1.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9cc23c04387f4da0374be4533ad1208cbb091d5c11d070dfef13676ad6497164"
-dependencies = [
- "arbitrary",
- "crc32fast",
- "crossbeam-utils",
- "displaydoc",
- "flate2",
- "indexmap 2.6.0",
- "num_enum",
- "thiserror",
 ]
 
 [[package]]

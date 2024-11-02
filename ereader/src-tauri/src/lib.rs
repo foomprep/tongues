@@ -4,7 +4,6 @@ pub mod completions;
 use std::path::Path;
 
 use aws_config::BehaviorVersion;
-use epub::doc::EpubDoc;
 use serde::{Serialize, Deserialize};
 use reqwest::Client;
 use serde_json::{json, Value};
@@ -13,7 +12,7 @@ use aws_sdk_polly::types::{VoiceId, OutputFormat::Mp3};
 use rodio::{Decoder, OutputStream, Sink};
 use std::io::Cursor;
 
-use anyhow::{Result, Context};
+use anyhow::Result;
 
 use scraper::{Html, Selector, ElementRef};
 use crate::utils::get_epub_language;
@@ -22,6 +21,133 @@ use crate::utils::get_epub_language;
 struct BinaryResponse {
     data: Vec<u8>,
     mime_type: String,
+}
+
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
+use xml::reader::{EventReader, XmlEvent};
+use zip::ZipArchive;
+
+#[derive(Debug, Serialize)]
+struct Book {
+    manifest: HashMap<String, ManifestItem>,
+    spine: Vec<String>,
+    contents: HashMap<String, String>,
+}
+
+#[derive(Debug, Serialize)]
+struct ManifestItem {
+    id: String,
+    href: String,
+    media_type: String,
+}
+
+#[tauri::command]
+fn parse_epub(epub_path: &str) -> Result<Book, String> {
+    let file = File::open(epub_path).map_err(|e| e.to_string())?;
+    let mut archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
+
+    let mut content_opf = String::new();
+    let container_xml = archive.by_name("META-INF/container.xml").map_err(|e| e.to_string())?;
+    let opf_path = find_opf_path(container_xml).map_err(|e| e.to_string())?;
+    archive.by_name(&opf_path).map_err(|e| e.to_string())?.read_to_string(&mut content_opf).map_err(|e| e.to_string())?;
+
+    // Initialize our Book structure
+    let mut book = Book {
+        manifest: HashMap::new(),
+        spine: Vec::new(),
+        contents: HashMap::new(),
+    };
+
+    let parser = EventReader::from_str(&content_opf);
+    let mut current_section = None;
+
+    // Parse the OPF file
+    for event in parser {
+        match event.map_err(|e| e.to_string())? {
+            XmlEvent::StartElement { name, attributes, .. } => {
+                match name.local_name.as_str() {
+                    "manifest" => current_section = Some("manifest"),
+                    "spine" => current_section = Some("spine"),
+                    "item" if current_section == Some("manifest") => {
+                        let mut id = None;
+                        let mut href = None;
+                        let mut media_type = None;
+
+                        // Extract attributes
+                        for attr in attributes {
+                            match attr.name.local_name.as_str() {
+                                "id" => id = Some(attr.value),
+                                "href" => href = Some(attr.value),
+                                "media-type" => media_type = Some(attr.value),
+                                _ => {}
+                            }
+                        }
+
+                        // Create ManifestItem if we have all required attributes
+                        if let (Some(id), Some(href), Some(media_type)) = (id, href, media_type) {
+                            book.manifest.insert(
+                                id.clone(),
+                                ManifestItem {
+                                    id,
+                                    href,
+                                    media_type,
+                                },
+                            );
+                        }
+                    }
+                    "itemref" if current_section == Some("spine") => {
+                        // Add spine items
+                        for attr in attributes {
+                            if attr.name.local_name == "idref" {
+                                book.spine.push(attr.value);
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            XmlEvent::EndElement { name } => {
+                if name.local_name == "manifest" || name.local_name == "spine" {
+                    current_section = None;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // Load contents for each manifest item
+    for item in book.manifest.values() {
+        let mut content = String::new();
+        // Try to read the file content
+        if let Ok(mut file) = archive.by_name(&item.href).map_err(|e| e.to_string()) {
+            if file.read_to_string(&mut content).map_err(|e| e.to_string()).is_ok() {
+                book.contents.insert(item.id.clone(), content);
+            }
+        }
+    }
+
+    Ok(book)
+}
+
+
+fn find_opf_path<R: Read>(container: R) -> Result<String, Box<dyn std::error::Error>> {
+    let parser = EventReader::new(container);
+    
+    for event in parser {
+        if let XmlEvent::StartElement { name, attributes, .. } = event? {
+            if name.local_name == "rootfile" {
+                for attr in attributes {
+                    if attr.name.local_name == "full-path" {
+                        return Ok(attr.value);
+                    }
+                }
+            }
+        }
+    }
+    
+    Err("Could not find OPF path in container.xml".into())
 }
 
 // TODO this function does not seem to wrap all words for given epubs ???
@@ -130,60 +256,6 @@ fn wrap_words_with_translate(html: &str) -> String {
     
     output
 }
-
-#[derive(Debug, Serialize)]
-struct Chapter {
-    title: String,
-    content: String,
-}
-
-#[derive(Debug, Serialize)]
-struct Book {
-    title: String,
-    chapters: Vec<Chapter>,
-    language: String,
-}
-
-#[tauri::command]
-async fn parse_epub(epub_path: String) -> Result<Book, String> {
-    let mut doc = EpubDoc::new(epub_path.clone())
-        .map_err(|e| e.to_string())?;
-
-    let language = match get_epub_language(Path::new(&epub_path)).await.map_err(|e| e.to_string())? {
-        Some(l) => l,
-        None => "unknown".to_string(), 
-    };
-
-    let toc = doc.toc.clone();
-    let mut chapters = Vec::<Chapter>::new();
-    for nav_point in toc {
-        let title = nav_point.label;
-        let content = match doc.get_resource_str_by_path(nav_point.content) {
-            Some(content_str) => wrap_words_with_translate(&content_str),
-            None => "".to_string(),
-        };
-
-        let chapter = Chapter {
-            title,
-            content,
-        };
-        chapters.push(chapter); 
-
-    }
-    let title = match doc.mdata("title") {
-        Some(t) => t,
-        None => "Unknown title".to_string(),
-    };
-
-    let book = Book {
-        title,
-        chapters,
-        language,
-    };
-
-    Ok(book)
-}
-
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Translation {
