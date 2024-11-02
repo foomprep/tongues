@@ -99,11 +99,15 @@ window.addEventListener("DOMContentLoaded", () => {
             bookContainer!.style.display = "flex";
 
             const sideBar: HTMLDivElement | null = document.querySelector("#sidebar");
-            modifiedBook.chapters.forEach(chapter => {
+            modifiedBook.chapters.forEach((chapter, index) => {
               let link = document.createElement("a");
-              link.href = "#";
               link.textContent = chapter.title;
               link.className = "block py-2 px-8 text-2xl text-gray-400 hover:text-gray-800 transition-colors duration-300";
+              link.addEventListener("click", (_e: any) => {
+                const contentContainer = document.querySelector("#content-container");
+                contentContainer!.innerHTML = chapter.content;
+                CURRENT_CHAPTER = index;
+              });
               sideBar!.append(link);
             });
 
