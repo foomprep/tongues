@@ -34,15 +34,19 @@
         </div>
 
         <div id="book-container" class="hidden">
-          <button id="sidebar-btn" class="text-xl cursor-pointer bg-white text-black px-4 py-2">&#9776;</button>
-          <div id="sidebar" class="fixed top-0 left-0 h-full w-0 bg-gray-100 overflow-x-hidden transition-all duration-500 pt-16 z-10">
-            <a href="javascript:void(0)" id="close-sidebar-btn" class="absolute top-0 right-6 text-4xl text-gray-400">&times;</a>
+          <div class="sidebar-container">
+            <button id="sidebar-btn" class="text-xl cursor-pointer bg-white text-black px-4 py-2">&#9776;</button>
+            <div id="sidebar" class="fixed top-0 left-0 h-full w-0 bg-gray-100 overflow-x-hidden transition-all duration-500 pt-16 z-10">
+              <a href="javascript:void(0)" id="close-sidebar-btn" class="absolute top-0 right-6 text-4xl text-gray-400">&times;</a>
+            </div>
           </div>
           <div class="gap-6">
             <main class="flex-1">
               <div id="content-container" />
             </main>
           </div>
+        </div>
+
 
 
           <div id="translation-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">

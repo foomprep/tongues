@@ -95,7 +95,7 @@ window.addEventListener("DOMContentLoaded", () => {
             BOOK = modifiedBook;
             openSpinner!.style.display = "none";
             contentContainer!.innerHTML = BOOK.chapters[0].content;
-            bookContainer!.style.display = "block";
+            bookContainer!.style.display = "flex";
 
             const sideBar: HTMLDivElement | null = document.querySelector("#sidebar");
             modifiedBook.chapters.forEach(chapter => {
