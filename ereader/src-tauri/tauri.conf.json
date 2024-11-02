@@ -10,10 +10,11 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "ereader",
-        "width": 1400,
+        "width": 1000,
         "height": 1000
       }
     ],
