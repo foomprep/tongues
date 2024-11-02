@@ -25,54 +25,77 @@
   </head>
 
   <body>
-    <div class="mx-auto p-4 flex justify-center items-center min-h-screen">
-      <div id="open-spinner" class="spinner hidden"></div>
+    <div id="mySidebar" class="fixed top-0 left-0 h-full w-0 bg-gray-900 overflow-x-hidden transition-all duration-500 pt-16 z-10">
+      <a href="javascript:void(0)" class="absolute top-0 right-6 text-4xl text-gray-400 hover:text-white" onclick="closeNav()">&times;</a>
+      <a href="#" class="block py-2 px-8 text-2xl text-gray-400 hover:text-white transition-colors duration-300">About</a>
+      <a href="#" class="block py-2 px-8 text-2xl text-gray-400 hover:text-white transition-colors duration-300">Services</a>
+      <a href="#" class="block py-2 px-8 text-2xl text-gray-400 hover:text-white transition-colors duration-300">Clients</a>
+      <a href="#" class="block py-2 px-8 text-2xl text-gray-400 hover:text-white transition-colors duration-300">Contact</a>
+    </div>
 
-      <div id="open-container" class="flex justify-center items-center h-screen">
-        <button id="open-button" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Open EPUB</button>
-      </div>
+    <div id="main" class="transition-all duration-500">
+      <button class="text-xl cursor-pointer bg-gray-900 text-white px-4 py-2 hover:bg-gray-700" onclick="openNav()">&#9776; Open Sidebar</button>
+      <div class="mx-auto p-4 flex justify-center items-center min-h-screen">
+        <div id="open-spinner" class="spinner hidden"></div>
 
-      <div id="book-container" class="hidden">
-        <div class="gap-6">
-          <main class="flex-1">
-            <div id="content-container" />
-          </main>
+        <div id="open-container" class="flex justify-center items-center h-screen">
+          <button id="open-button" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Open EPUB</button>
         </div>
 
+        <div id="book-container" class="hidden">
+          <div class="gap-6">
+            <main class="flex-1">
+              <div id="content-container" />
+            </main>
+          </div>
 
-        <div id="translation-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
-          <div id="inner-modal" class="bg-white p-6 rounded-lg shadow-lg" onclick="event.stopPropagation()">
-            <div id="spinner" class="spinner"></div>
-            <div id="modal-content" class="hidden">
-              <p id="original-text" class="text-2xl"></p>
-              <p id="translation-text" class="text-xl"></p>
-              <button id="play-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none">
-                Play
+
+          <div id="translation-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
+            <div id="inner-modal" class="bg-white p-6 rounded-lg shadow-lg" onclick="event.stopPropagation()">
+              <div id="spinner" class="spinner"></div>
+              <div id="modal-content" class="hidden">
+                <p id="original-text" class="text-2xl"></p>
+                <p id="translation-text" class="text-xl"></p>
+                <button id="play-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none">
+                  Play
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="language-select" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+              <h2 class="text-xl font-bold mb-4">Select Language</h2>
+              <select
+                id="language-dropdown"
+                class="w-full p-2 mb-4 border rounded"
+              >
+                <option value="">Choose a language</option>
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+              </select>
+              <button id="lang-select-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                Start Reading
               </button>
             </div>
           </div>
         </div>
-
-        <div id="language-select" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
-          <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-bold mb-4">Select Language</h2>
-            <select
-              id="language-dropdown"
-              class="w-full p-2 mb-4 border rounded"
-            >
-              <option value="">Choose a language</option>
-              <option value="en">English</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="de">German</option>
-            </select>
-            <button id="lang-select-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-              Start Reading
-            </button>
-          </div>
-        </div>
       </div>
     </div>
+
+    <script>
+      function openNav() {
+        document.getElementById("mySidebar").style.width = "250px";
+        document.getElementById("main").style.marginLeft = "250px";
+      }
+
+      function closeNav() {
+        document.getElementById("mySidebar").style.width = "0";
+        document.getElementById("main").style.marginLeft = "0";
+      }
+    </script>
   </body>
 </html>
 

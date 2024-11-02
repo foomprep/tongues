@@ -90,6 +90,7 @@ window.addEventListener("DOMContentLoaded", () => {
           invoke<Book>('parse_epub', {
             epubPath: selected as string
           }).then(modifiedBook => {
+            console.log(modifiedBook);
             BOOK = modifiedBook;
             openSpinner!.style.display = "none";
             contentContainer!.innerHTML = BOOK.chapters[0].content;
