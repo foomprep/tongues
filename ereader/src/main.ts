@@ -21,9 +21,9 @@ interface Audio {
   mimeType: string;
 }
 
-let book: Book | null;
-let currentChapter: number = 0;
-let audio: Audio | null = null;
+let BOOK: Book | null;
+let CURRENT_CHAPTER: number = 0;
+let AUDIO: Audio | null = null;
 
 window.addEventListener("DOMContentLoaded", () => {
   const playAudio = async (audio: Audio) => {
@@ -36,23 +36,33 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  const createTranslateFunction = (language: string) => async (text: string) => {
-    const translation = await invoke<Translation>('get_translation', {
+  const createTranslateFunction = (language: string) => (text: string) => {
+    const translationModal: HTMLDivElement | null = document.querySelector("#translation-modal");
+    const modalContent: HTMLDivElement | null = document.querySelector("#modal-content");
+    const spinner: HTMLDivElement | null = document.querySelector("#spinner"); 
+    translationModal!.style.display = "flex";
+    modalContent!.style.display = "none";
+    spinner!.style.display = "block";
+
+    invoke<Translation>('get_translation', {
       text,
       sourceLanguage: language,
       targetLanguage: "English",
+    }).then(translation => {
+      invoke<Audio>('synthesize_speech', {
+        text,
+        language: language,
+      }).then(audio => {
+        AUDIO = audio;
+        const originalText: HTMLParagraphElement | null = document.querySelector("#original-text");
+        const translationText: HTMLParagraphElement | null = document.querySelector("#translation-text");
+        originalText!.innerText = text;
+        translationText!.innerText = translation.text;
+
+        modalContent!.style.display = "block";
+        spinner!.style.display = "none";
+      });
     });
-    const audio = await invoke<Audio>('synthesize_speech', {
-      text,
-      language: language,
-    });
-    const translationModal: HTMLDivElement | null = document.querySelector("#translation-modal");
-    translationModal!.style.display = "flex";
-    const originalText: HTMLDivElement | null = document.querySelector("#original-text");
-    const translationText: HTMLDivElement | null = document.querySelector("#translation-text");
-    originalText!.innerText = text;
-    translationText!.innerText = translation.text;
-   
   };
 
   const handleLanguageSelect = async (e: any) => {
@@ -70,11 +80,11 @@ window.addEventListener("DOMContentLoaded", () => {
 
       if (selected) {
         const modifiedBook = await invoke<Book>('parse_epub', { 
-          epubPath: selected as string 
+          epubPath: selected as string
         });
-        book = modifiedBook;
+        BOOK = modifiedBook;
         const contentContainer = document.querySelector("#content-container");
-        contentContainer!.innerHTML = book.chapters[0].content;
+        contentContainer!.innerHTML = BOOK.chapters[0].content;
 
         if (modifiedBook.language !== "unknown") {
           window.translate = createTranslateFunction(modifiedBook.language);
@@ -82,7 +92,7 @@ window.addEventListener("DOMContentLoaded", () => {
           const languageSelectContainer: HTMLDivElement | null = document.querySelector("#language-select");
           languageSelectContainer!.style.display = "flex";
         }
-        currentChapter = 0;
+        CURRENT_CHAPTER = 0;
       }
     } catch (error) {
       console.error('Error opening file:', error);
@@ -101,8 +111,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   const playButton = document.querySelector("#play-button");
   playButton?.addEventListener("click", async (_e: any) => {
-    if (audio) {
-      await playAudio(audio);
+    if (AUDIO) {
+      await playAudio(AUDIO);
     }
   });
 });

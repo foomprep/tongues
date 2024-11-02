@@ -6,6 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>tongues-reader</title>
     <script type="module" src="/src/main.ts" defer></script>
+    <style>
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+
   </head>
 
   <body>
@@ -29,20 +45,21 @@
           </main>
         </div>
 
-        <div id="spinner" style="display: none;"></div>
 
-        <div id="translation-modal" class="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50" onclick="closeTranslationModal(event)" style="display: none;">
-          <div class="bg-white p-6 rounded-lg shadow-lg" onclick="event.stopPropagation()">
-            <h2 class="text-xl font-bold mb-4">Translation</h2>
-            <p id="original-text"></p>
-            <p id="translation-text"></p>
-            <button id="play-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none">
-              Play
-            </button>
+        <div id="translation-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
+          <div id="inner-modal" class="bg-white p-6 rounded-lg shadow-lg" onclick="event.stopPropagation()">
+            <div id="spinner" class="spinner"></div>
+            <div id="modal-content" class="hidden">
+              <p id="original-text" class="text-2xl"></p>
+              <p id="translation-text" class="text-xl"></p>
+              <button id="play-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none">
+                Play
+              </button>
+            </div>
           </div>
         </div>
 
-        <div id="language-select" class="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center" style="display: none;">
+        <div id="language-select" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
           <div class="bg-white p-6 rounded-lg shadow-lg">
             <h2 class="text-xl font-bold mb-4">Select Language</h2>
             <select
@@ -55,7 +72,7 @@
               <option value="fr">French</option>
               <option value="de">German</option>
             </select>
-            <button onclick="handleLanguageSelect()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+            <button id="lang-select-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
               Start Reading
             </button>
           </div>
