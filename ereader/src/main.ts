@@ -96,6 +96,8 @@ window.addEventListener("DOMContentLoaded", () => {
             contentContainer!.innerHTML = BOOK.chapters[0].content;
             bookContainer!.style.display = "block";
 
+            const sideBarContainer: HTMLDivElement | null = document.querySelector("#")
+
             if (modifiedBook.language !== "unknown") {
               window.translate = createTranslateFunction(modifiedBook.language);
             } else {
@@ -130,5 +132,26 @@ window.addEventListener("DOMContentLoaded", () => {
       await playAudio(AUDIO);
     }
   });
+
+  const openNav = () => {
+    document.getElementById("sidebar")!.style.width = "250px";
+    document.getElementById("main")!.style.marginLeft = "250px";
+  }
+
+  function closeNav() {
+    document.getElementById("sidebar")!.style.width = "0";
+    document.getElementById("main")!.style.marginLeft = "0";
+  }
+  const sidebarButton: HTMLButtonElement | null = document.querySelector("#sidebar-btn");
+  const closeSidebarButton: HTMLButtonElement | null = document.querySelector("#close-sidebar-btn");
+  sidebarButton!.addEventListener("click", (_e: any) => {
+    sidebarButton!.style.display = "none";
+    openNav();
+  })
+  // TODO sidebar button appears before animation completes
+  closeSidebarButton?.addEventListener("click", (_e: any) => {
+    closeNav();
+    sidebarButton!.style.display = "block";
+  })
 });
 
