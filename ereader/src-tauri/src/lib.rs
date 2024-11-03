@@ -25,7 +25,6 @@ struct BinaryResponse {
     mime_type: String,
 }
 
-
 #[derive(Debug, Serialize)]
 struct Book {
     spine: Vec<SpineItem>,
@@ -55,6 +54,9 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
     let container_xml = archive.by_name("META-INF/container.xml").map_err(|e| e.to_string())?;
     let opf_path = find_opf_path(container_xml).map_err(|e| e.to_string())?;
     archive.by_name(&opf_path).map_err(|e| e.to_string())?.read_to_string(&mut content_opf).map_err(|e| e.to_string())?;
+
+    // Get the directory of the OPF file
+    let opf_dir = Path::new(&opf_path).parent().unwrap_or(Path::new("")).to_str().unwrap_or("");
 
     // Initialize our Book structure
     let mut book = Book {
@@ -91,9 +93,10 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
 
                         // Create ManifestItem if we have all required attributes
                         if let (Some(id), Some(href), Some(media_type)) = (id, href, media_type) {
+                            let full_href = Path::new(opf_dir).join(&href).to_str().unwrap_or(&href).to_string();
                             manifest_items.insert(
                                 id.clone(),
-                                (href, media_type),
+                                (full_href, media_type),
                             );
                         }
                     }
@@ -143,6 +146,7 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
 
     Ok(book)
 }
+
 
 fn find_opf_path<R: Read>(container: R) -> Result<String, Box<dyn std::error::Error>> {
     let parser = EventReader::new(container);
