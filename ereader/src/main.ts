@@ -1,5 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import { documentDir} from "@tauri-apps/api/path";
 
 interface Book {
   spine: SpineItem[];
@@ -78,46 +79,52 @@ window.addEventListener("DOMContentLoaded", () => {
       openContainer!.style.display = "none";
       openSpinner!.style.display = "block";
       bookContainer!.style.display = "none";
-      open({
-        filters: [{
-          name: 'EPUB',
-          extensions: ['epub']
-        }],
-        multiple: false,
-      }).then(selected => {
+      documentDir().then(defaultPath => {
+        open({
+          filters: [{
+            name: 'EPUB',
+            extensions: ['epub']
+          }],
+          multiple: false,
+          directory: false,
+          defaultPath,
+        }).then(selected => {
+          openSpinner!.style.display = "block";
+          if (selected) {
+            invoke<Book>('parse_epub', {
+              epubPath: selected as string
+            }).then(modifiedBook => {
+              console.log(modifiedBook);
+              BOOK = modifiedBook;
 
-        openSpinner!.style.display = "block";
-        if (selected) {
-          invoke<Book>('parse_epub', {
-            epubPath: selected as string
-          }).then(modifiedBook => {
-            console.log(modifiedBook);
-            BOOK = modifiedBook;
+              // TODO this is not removed when book is closed!
+              modifiedBook.css.forEach(cssString => {
+                const style = document.createElement('style');
+                style.textContent = cssString;
+                document.head.appendChild(style);
+              });
 
-            // TODO this is not removed when book is closed!
-            modifiedBook.css.forEach(cssString => {
-              const style = document.createElement('style');
-              style.textContent = cssString;
-              document.head.appendChild(style);
+              openSpinner!.style.display = "none";
+              contentContainer!.innerHTML = BOOK.spine[0].contents;
+              bookContainer!.style.display = "flex";
+
+              if (modifiedBook.language !== "unknown") {
+                window.translate = createTranslateFunction(modifiedBook.language);
+              } else {
+                const languageSelectContainer: HTMLDivElement | null = document.querySelector("#language-select");
+                languageSelectContainer!.style.display = "flex";
+              }
+              CURRENT_CHAPTER = 0;
+            })
+            .catch(err => {
+              console.log(err);
             });
-
+          } else {
             openSpinner!.style.display = "none";
-            contentContainer!.innerHTML = BOOK.spine[0].contents;
-            bookContainer!.style.display = "flex";
-
-            if (modifiedBook.language !== "unknown") {
-              window.translate = createTranslateFunction(modifiedBook.language);
-            } else {
-              const languageSelectContainer: HTMLDivElement | null = document.querySelector("#language-select");
-              languageSelectContainer!.style.display = "flex";
-            }
-            CURRENT_CHAPTER = 0;
-          })
-          .catch(err => {
-            console.log(err);
-          });
-        }
-      });
+            openContainer!.style.display = "flex";
+          }
+        });
+      })
     } catch (error) {
       openSpinner!.style.display = "none";
       bookContainer!.style.display = "none";
