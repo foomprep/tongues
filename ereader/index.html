@@ -1,3 +1,24 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -21,23 +42,21 @@
         100% { transform: rotate(360deg); }
       }
 
-      body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
+      p {
+        font-size: 20px;
       }
 
-      #main {
-        width: 100vw;
-        height: 100vh;
+      body {
+        margin: 0;
+        padding: 10px;
         overflow: hidden;
       }
     </style>
 
   </head>
 
-  <body>
-    <div id="main" class="transition-all duration-500">
+  <body overflow-hidden m-0 p-4>
+    <div id="main" class="h-screen w-screen overflow-hidden transition-all duration-500">
       <div class="mx-auto p-4 flex justify-center items-center min-h-screen">
         <div id="open-spinner" class="spinner hidden"></div>
 
@@ -45,8 +64,8 @@
           <button id="open-button" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Open EPUB</button>
         </div>
 
-        <div id="book-container" class="hidden">
-          <div class="sidebar-container">
+        <div id="book-container" class="hidden h-screen overflow-y-auto">
+          <div class="sidebar-container fixed top-0 left-0 h-screen z-20">
             <button id="sidebar-btn" class="text-xl cursor-pointer bg-white text-black px-4 py-2">&#9776;</button>
             <div id="sidebar" class="fixed top-0 left-0 h-full w-0 bg-gray-100 overflow-x-hidden transition-all duration-500 pt-16 z-10">
               <a href="javascript:void(0)" id="close-sidebar-btn" class="absolute top-0 right-6 text-4xl text-gray-400">&times;</a>
@@ -94,7 +113,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </body>
 
     <script>
       
