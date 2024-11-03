@@ -33,25 +33,22 @@
   </head>
 
   <body overflow-hidden m-0>
-    <div id="main" class="h-screen w-screen overflow-hidden transition-all duration-500">
+    <div id="main" class="h-screen w-screen overflow-hidden">
       <div class="flex justify-center items-center box-border h-full w-full">
         <div id="open-spinner" class="spinner hidden"></div>
 
         <div id="open-container" class="flex justify-center items-center w-full h-full">
-          <button id="open-button" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 box-border">Open EPUB</button>
+          <button id="open-button" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 box-border">Open Book</button>
         </div>
 
-        <div id="book-container" class="hidden w-full h-full fixed">
+        <div id="book-container" class="hidden flex w-full h-full fixed">
           <button id="close-button" class="fixed top-2.5 right-2.5 text-2xl bg-transparent border-none cursor-pointer z-50">&times;</button>
           <button id="prev-button" class="fixed top-1/2 left-0 text-black p-2 border-none cursor-pointer text-2xl z-100 box-border">&lt;</button>
           <button id="next-button" class="fixed top-1/2 right-0 text-black p-2 border-none cursor-pointer text-2xl z-100 box-border">&gt;</button>
-          <div class="gap-6 ml-16">
-            <main class="flex-1">
-              <div id="content-container" />
-            </main>
+          <div class="gap-6 flex-1 p-10">
+            <div id="content-container" />
           </div>
         </div>
-
 
         <div id="translation-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
           <div id="inner-modal" class="bg-white p-6 rounded-lg shadow-lg box-border" onclick="event.stopPropagation()">

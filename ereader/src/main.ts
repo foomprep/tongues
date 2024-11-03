@@ -2,6 +2,12 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { documentDir} from "@tauri-apps/api/path";
 
+declare global {
+  interface Window {
+      translate: (text: string) => void;
+  }
+}
+
 interface Book {
   spine: SpineItem[];
   language: string;
@@ -168,7 +174,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const openContainer: HTMLDivElement | null = document.querySelector("#open-container");
     const bookContainer: HTMLDivElement | null = document.querySelector("#book-container");
     bookContainer!.style.display = "none";
-    openContainer!.style.display = "block";
+    openContainer!.style.display = "flex";
     BOOK = null;
   });
 

@@ -324,7 +324,7 @@ async fn synthesize_speech(text: &str, language: &str) -> Result<BinaryResponse,
     
     let voice_id = match language {
         "en" | "English" => VoiceId::Matthew,
-        "es" | "Spanish" => VoiceId::Miguel,
+        "es" | "Spanish" => VoiceId::Enrique,
         "fr" | "French" => VoiceId::Mathieu,
         "de" | "German" => VoiceId::Hans,
         _ => return Err("Unsupported language".into()),
