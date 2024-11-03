@@ -105,7 +105,7 @@ window.addEventListener("DOMContentLoaded", () => {
             });
 
             openSpinner!.style.display = "none";
-            contentContainer!.innerHTML = BOOK.spine[3].contents;
+            contentContainer!.innerHTML = BOOK.spine[0].contents;
             bookContainer!.style.display = "flex";
 
             //const sideBar: HTMLDivElement | null = document.querySelector("#sidebar");

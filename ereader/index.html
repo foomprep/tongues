@@ -24,7 +24,6 @@
       p {
         font-size: 20px;
       }
-
     </style>
   </head>
 
@@ -37,7 +36,9 @@
           <button id="open-button" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Open EPUB</button>
         </div>
 
-        <div id="book-container" class="hidden h-screen overflow-y-auto relative">
+        <div id="book-container" class="hidden w-full h-full overflow-y-auto relative">
+          <button id="prev-button" class="fixed top-1/2 left-0 text-black p-2 border-none cursor-pointer text-2xl z-100">&lt;</button>
+          <button id="next-button" class="fixed top-1/2 right-0 text-black p-2 border-none cursor-pointer text-2xl z-100">&gt;</button>
           <div class="sidebar-container fixed top-0 left-0 h-screen z-20">
             <button id="sidebar-btn" class="text-xl cursor-pointer bg-white text-black px-4 py-2">&#9776;</button>
             <div id="sidebar" class="fixed top-0 left-0 h-full w-0 bg-gray-100 overflow-x-hidden transition-all duration-500 pt-16 z-10">
@@ -52,45 +53,44 @@
         </div>
 
 
-
-          <div id="translation-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
-            <div id="inner-modal" class="bg-white p-6 rounded-lg shadow-lg" onclick="event.stopPropagation()">
-              <div id="spinner" class="spinner"></div>
-              <div id="modal-content" class="hidden">
-                <p id="original-text" class="text-2xl"></p>
-                <p id="translation-text" class="text-xl"></p>
-                <button id="play-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none">
-                  Play
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div id="language-select" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-              <h2 class="text-xl font-bold mb-4">Select Language</h2>
-              <select
-                id="language-dropdown"
-                class="w-full p-2 mb-4 border rounded"
-              >
-                <option value="">Choose a language</option>
-                <option value="en">English</option>
-                <option value="es">Spanish</option>
-                <option value="fr">French</option>
-                <option value="de">German</option>
-              </select>
-              <button id="lang-select-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-                Start Reading
+        <div id="translation-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
+          <div id="inner-modal" class="bg-white p-6 rounded-lg shadow-lg" onclick="event.stopPropagation()">
+            <div id="spinner" class="spinner"></div>
+            <div id="modal-content" class="hidden">
+              <p id="original-text" class="text-2xl"></p>
+              <p id="translation-text" class="text-xl"></p>
+              <button id="play-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none">
+                Play
               </button>
             </div>
           </div>
         </div>
-      </div>
-    </body>
 
-    <script>
-      
-    </script>
+        <div id="language-select" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-bold mb-4">Select Language</h2>
+            <select
+              id="language-dropdown"
+              class="w-full p-2 mb-4 border rounded"
+            >
+              <option value="">Choose a language</option>
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+            </select>
+            <button id="lang-select-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+              Start Reading
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
+
+  <script>
+    
+  </script>
+</body>
 </html>
 
