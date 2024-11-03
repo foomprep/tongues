@@ -2,8 +2,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
 interface Book {
-    spine: SpineItem[];
-    language: string;
+  spine: SpineItem[];
+  language: string;
+  css: string[]; 
 }
 
 interface SpineItem {
@@ -93,39 +94,32 @@ window.addEventListener("DOMContentLoaded", () => {
           invoke<Book>('parse_epub', {
             epubPath: selected as string
           }).then(modifiedBook => {
-            console.log(modifiedBook);
+            console.log(modifiedBook.spine[0].contents);
             BOOK = modifiedBook;
 
-                // TODO this is not removed when book i sclosed!
-            for (const [key, value] of Object.entries(modifiedBook.manifest)) {
-              if (value.media_type === "text/css") {
-                const style = document.createElement('style');
-                    console.log(modifiedBook.contents[key]);
-                style.textContent = modifiedBook.contents[key];
-                document.head.appendChild(style);
-              }
-            }
-
-            modifiedBook.spine.forEach(spineId => {
-              console.log(modifiedBook.manifest[spineId]);
+            // TODO this is not removed when book i sclosed!
+            modifiedBook.css.forEach(cssString => {
+              const style = document.createElement('style');
+              style.textContent = cssString;
+              document.head.appendChild(style);
             });
 
             openSpinner!.style.display = "none";
-            contentContainer!.innerHTML = BOOK.chapters[0].content;
+            contentContainer!.innerHTML = BOOK.spine[3].contents;
             bookContainer!.style.display = "flex";
 
-            const sideBar: HTMLDivElement | null = document.querySelector("#sidebar");
-            modifiedBook.chapters.forEach((chapter, index) => {
-              let link = document.createElement("a");
-              link.textContent = chapter.title;
-              link.className = "block py-2 px-8 text-2xl text-gray-400 hover:text-gray-800 transition-colors duration-300";
-              link.addEventListener("click", (_e: any) => {
-                const contentContainer = document.querySelector("#content-container");
-                contentContainer!.innerHTML = chapter.content;
-                CURRENT_CHAPTER = index;
-              });
-              sideBar!.append(link);
-            });
+            //const sideBar: HTMLDivElement | null = document.querySelector("#sidebar");
+            //modifiedBook.chapters.forEach((chapter, index) => {
+            //  let link = document.createElement("a");
+            //  link.textContent = chapter.title;
+            //  link.className = "block py-2 px-8 text-2xl text-gray-400 hover:text-gray-800 transition-colors duration-300";
+            //  link.addEventListener("click", (_e: any) => {
+            //    const contentContainer = document.querySelector("#content-container");
+            //    contentContainer!.innerHTML = chapter.content;
+            //    CURRENT_CHAPTER = index;
+            //  });
+            //  sideBar!.append(link);
+            //});
 
             if (modifiedBook.language !== "unknown") {
               window.translate = createTranslateFunction(modifiedBook.language);

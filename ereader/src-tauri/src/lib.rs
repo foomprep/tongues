@@ -2,7 +2,6 @@ pub mod utils;
 pub mod completions;
 
 use std::path::Path;
-
 use aws_config::BehaviorVersion;
 use serde::{Serialize, Deserialize};
 use reqwest::Client;
@@ -11,11 +10,14 @@ use aws_sdk_polly::Client as PollyClient;
 use aws_sdk_polly::types::{VoiceId, OutputFormat::Mp3};
 use rodio::{Decoder, OutputStream, Sink};
 use std::io::Cursor;
-
 use anyhow::Result;
-
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
+use xml::reader::{EventReader, XmlEvent};
+use zip::ZipArchive;
 use scraper::{Html, Selector, ElementRef};
-use crate::utils::get_epub_language;
+use crate::utils::*;
 
 #[derive(Serialize)]
 struct BinaryResponse {
@@ -23,11 +25,6 @@ struct BinaryResponse {
     mime_type: String,
 }
 
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-use xml::reader::{EventReader, XmlEvent};
-use zip::ZipArchive;
 
 #[derive(Debug, Serialize)]
 struct Book {
@@ -147,9 +144,6 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
 
     Ok(book)
 }
-
-
-
 
 fn find_opf_path<R: Read>(container: R) -> Result<String, Box<dyn std::error::Error>> {
     let parser = EventReader::new(container);
