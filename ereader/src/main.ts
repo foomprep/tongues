@@ -143,27 +143,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  const openNav = () => {
-    document.getElementById("sidebar")!.style.width = "250px";
-    document.getElementById("main")!.style.marginLeft = "250px";
-  }
-
-  function closeNav() {
-    document.getElementById("sidebar")!.style.width = "0";
-    document.getElementById("main")!.style.marginLeft = "0";
-  }
-  const sidebarButton: HTMLButtonElement | null = document.querySelector("#sidebar-btn");
-  const closeSidebarButton: HTMLButtonElement | null = document.querySelector("#close-sidebar-btn");
-  sidebarButton!.addEventListener("click", (_e: any) => {
-    sidebarButton!.style.display = "none";
-    openNav();
-  })
-  // TODO sidebar button appears before animation completes
-  closeSidebarButton?.addEventListener("click", (_e: any) => {
-    closeNav();
-    sidebarButton!.style.display = "block";
-  })
-
   const prevButton : HTMLButtonElement | null = document.querySelector("#prev-button");
   const nextButton: HTMLButtonElement | null = document.querySelector("#next-button");
   prevButton!.addEventListener("click", (_e: any) => {
@@ -198,6 +177,14 @@ window.addEventListener("DOMContentLoaded", () => {
         languageDropdownContainer!.style.display = "none";
         window.translate = createTranslateFunction(language);
       }
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) {
+      window.translate(selection.toString());
+      selection.removeAllRanges();
     }
   });
 });
