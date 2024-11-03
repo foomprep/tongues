@@ -11,7 +11,7 @@ pub async fn query_haiku(prompt: &str) -> Result<Value, Box<dyn std::error::Erro
         .json(&serde_json::json!({
             "model": "claude-3-haiku-20240307",
             "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 100,
+            "max_tokens": 300,
             "temperature": 0.0
         }))
         .send()

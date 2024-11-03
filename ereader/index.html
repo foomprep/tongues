@@ -51,14 +51,18 @@
         </div>
 
         <div id="translation-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
-          <div id="inner-modal" class="bg-white p-6 rounded-lg shadow-lg box-border" onclick="event.stopPropagation()">
+          <div id="inner-modal" class="bg-white p-6 rounded-lg shadow-lg box-border max-w-[40%]" onclick="event.stopPropagation()">
             <div id="spinner" class="spinner"></div>
-            <div id="modal-content" class="hidden">
+            <div id="modal-content" class="hidden flex-col gap-4">
               <p id="original-text" class="text-2xl"></p>
               <p id="translation-text" class="text-xl"></p>
               <button id="play-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none box-border">
                 Play
               </button>
+              <button id="more-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none box-border">
+                More
+              </button>
+              <p id="text-info"></p>
             </div>
           </div>
         </div>

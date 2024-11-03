@@ -8,6 +8,11 @@ declare global {
   }
 }
 
+interface TextInfo {
+  text: string,
+  info: string,
+}
+
 interface Book {
   spine: SpineItem[];
   language: string;
@@ -34,6 +39,10 @@ let BOOK: Book | null;
 let CURRENT_CHAPTER: number = 0;
 let AUDIO: Audio | null = null;
 
+function sanitizeModelResponse(input: string): string {
+    return input.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/^"|"$/g, '');
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   const playAudio = async (audio: Audio) => {
     try {
@@ -46,6 +55,8 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   const createTranslateFunction = (language: string) => (text: string) => {
+    const infoParagraph : HTMLParagraphElement | null = document.querySelector("#text-info");
+    infoParagraph!.innerText = "";
     const translationModal: HTMLDivElement | null = document.querySelector("#translation-modal");
     const modalContent: HTMLDivElement | null = document.querySelector("#modal-content");
     const spinner: HTMLDivElement | null = document.querySelector("#spinner"); 
@@ -147,6 +158,8 @@ window.addEventListener("DOMContentLoaded", () => {
   const translationModal: HTMLDivElement | null = document.querySelector("#translation-modal");
   translationModal?.addEventListener("click", (_e: any) => {
     translationModal!.style.display = "none";
+    const infoParagraph: HTMLParagraphElement | null = document.querySelector("#text-info");
+    infoParagraph!.innerText = "";
   });
 
   const playButton = document.querySelector("#play-button");
@@ -199,6 +212,17 @@ window.addEventListener("DOMContentLoaded", () => {
       window.translate(selection.toString());
       selection.removeAllRanges();
     }
+  });
+
+  const moreButton = document.querySelector("#more-button");
+  const originalText: HTMLParagraphElement | null = document.querySelector("#original-text");
+  moreButton?.addEventListener("click", async (_e: any) => {
+    const textInfo = await invoke<TextInfo>('get_more_info', {
+      text: originalText!.innerText,
+      language: BOOK!.language,
+    });
+    const infoParagraph : HTMLParagraphElement | null = document.querySelector("#text-info");
+    infoParagraph!.innerText = sanitizeModelResponse(textInfo.info);
   });
 });
 

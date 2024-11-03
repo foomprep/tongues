@@ -3,6 +3,7 @@ pub mod completions;
 
 use std::path::Path;
 use aws_config::BehaviorVersion;
+use completions::query_haiku;
 use serde::{Serialize, Deserialize};
 use reqwest::Client;
 use serde_json::{json, Value};
@@ -128,7 +129,7 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
     }
 
     // Load contents for each spine item and CSS files
-    for (_, (href, media_type)) in &manifest_items {
+    for (_, (href, _media_type)) in &manifest_items {
         let mut content = String::new();
         if let Ok(mut file) = archive.by_name(href).map_err(|e| println!("{}", e)) {
             if file.read_to_string(&mut content).map_err(|e| e.to_string()).is_ok() {
@@ -317,6 +318,26 @@ Target Language: {}
     Ok(translation)
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct TextInfo {
+    text: String,
+    info: String,
+}
+
+#[tauri::command]
+async fn get_more_info(text: &str, language: &str) -> Result<TextInfo, String> {
+    let prompt = format!("If the text is a verb then return the various senses and conjugations.\nIf the text is a noun return various senses.\n Return them in English.\n\nText: {}\nLanguage: {}", text, language);
+    let response = query_haiku(&prompt).await.map_err(|e| e.to_string())?;
+
+    let info = TextInfo {
+        text: text.to_string(),
+        info: response["content"][0]["text"].to_string(),
+    };
+
+    Ok(info)
+}
+
+
 #[tauri::command]
 async fn synthesize_speech(text: &str, language: &str) -> Result<BinaryResponse, String> {
     let config = aws_config::load_defaults(BehaviorVersion::v2024_03_28()).await;
@@ -369,7 +390,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![parse_epub, get_translation, synthesize_speech, play_mp3])
+        .invoke_handler(tauri::generate_handler![parse_epub, get_translation, synthesize_speech, play_mp3, get_more_info])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
