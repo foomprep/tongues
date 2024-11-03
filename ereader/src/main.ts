@@ -176,5 +176,20 @@ window.addEventListener("DOMContentLoaded", () => {
     closeNav();
     sidebarButton!.style.display = "block";
   })
+
+  const prevButton : HTMLButtonElement | null = document.querySelector("#prev-button");
+  const nextButton: HTMLButtonElement | null = document.querySelector("#next-button");
+  prevButton!.addEventListener("click", (_e: any) => {
+    CURRENT_CHAPTER = (CURRENT_CHAPTER > 0) ? CURRENT_CHAPTER - 1 : 0;
+    const contentContainer: HTMLDivElement | null = document.querySelector("#content-container");
+    contentContainer!.innerHTML = BOOK!.spine[CURRENT_CHAPTER].contents;
+  });
+  nextButton!.addEventListener("click", (_e: any) => {
+    console.log('nextButton');
+    console.log(CURRENT_CHAPTER);
+    CURRENT_CHAPTER = (CURRENT_CHAPTER === BOOK!.spine.length-1) ? CURRENT_CHAPTER : CURRENT_CHAPTER + 1;
+    const contentContainer: HTMLDivElement | null = document.querySelector("#content-container");
+    contentContainer!.innerHTML = BOOK!.spine[CURRENT_CHAPTER].contents;
+  });
 });
 
