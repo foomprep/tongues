@@ -127,8 +127,7 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
     // Load contents for each spine item and CSS files
     for (_, (href, media_type)) in &manifest_items {
         let mut content = String::new();
-        // Try to read the file content
-        if let Ok(mut file) = archive.by_name(href).map_err(|e| e.to_string()) {
+        if let Ok(mut file) = archive.by_name(href).map_err(|e| println!("{}", e)) {
             if file.read_to_string(&mut content).map_err(|e| e.to_string()).is_ok() {
                 if href.ends_with(".css") {
                     book.css.push(content);

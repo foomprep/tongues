@@ -67,9 +67,6 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  const handleLanguageSelect = async (e: any) => {
-  }
-
   // TODO if user presses cancel gets stuck in spinner
   const handleFileOpen = () => {
     const openSpinner: HTMLDivElement | null = document.querySelector("#open-spinner");
@@ -94,10 +91,10 @@ window.addEventListener("DOMContentLoaded", () => {
           invoke<Book>('parse_epub', {
             epubPath: selected as string
           }).then(modifiedBook => {
-            console.log(modifiedBook.spine[0].contents);
+            console.log(modifiedBook);
             BOOK = modifiedBook;
 
-            // TODO this is not removed when book i sclosed!
+            // TODO this is not removed when book is closed!
             modifiedBook.css.forEach(cssString => {
               const style = document.createElement('style');
               style.textContent = cssString;
@@ -108,19 +105,6 @@ window.addEventListener("DOMContentLoaded", () => {
             contentContainer!.innerHTML = BOOK.spine[0].contents;
             bookContainer!.style.display = "flex";
 
-            //const sideBar: HTMLDivElement | null = document.querySelector("#sidebar");
-            //modifiedBook.chapters.forEach((chapter, index) => {
-            //  let link = document.createElement("a");
-            //  link.textContent = chapter.title;
-            //  link.className = "block py-2 px-8 text-2xl text-gray-400 hover:text-gray-800 transition-colors duration-300";
-            //  link.addEventListener("click", (_e: any) => {
-            //    const contentContainer = document.querySelector("#content-container");
-            //    contentContainer!.innerHTML = chapter.content;
-            //    CURRENT_CHAPTER = index;
-            //  });
-            //  sideBar!.append(link);
-            //});
-
             if (modifiedBook.language !== "unknown") {
               window.translate = createTranslateFunction(modifiedBook.language);
             } else {
@@ -128,6 +112,9 @@ window.addEventListener("DOMContentLoaded", () => {
               languageSelectContainer!.style.display = "flex";
             }
             CURRENT_CHAPTER = 0;
+          })
+          .catch(err => {
+            console.log(err);
           });
         }
       });
@@ -190,6 +177,28 @@ window.addEventListener("DOMContentLoaded", () => {
     CURRENT_CHAPTER = (CURRENT_CHAPTER === BOOK!.spine.length-1) ? CURRENT_CHAPTER : CURRENT_CHAPTER + 1;
     const contentContainer: HTMLDivElement | null = document.querySelector("#content-container");
     contentContainer!.innerHTML = BOOK!.spine[CURRENT_CHAPTER].contents;
+  });
+
+  const closeButton: HTMLButtonElement | null = document.querySelector("#close-button");
+  closeButton!.addEventListener("click", (_e: any) => {
+    const openContainer: HTMLDivElement | null = document.querySelector("#open-container");
+    const bookContainer: HTMLDivElement | null = document.querySelector("#book-container");
+    bookContainer!.style.display = "none";
+    openContainer!.style.display = "block";
+    BOOK = null;
+  });
+
+  const languageDropdownContainer: HTMLDivElement | null = document.querySelector("#language-select");
+  const languageSelectButton: HTMLButtonElement | null = document.querySelector("#lang-select-btn");
+  const languageDropdown: HTMLSelectElement | null = document.querySelector("#language-dropdown");
+  languageSelectButton!.addEventListener("click", (_e: any) => {
+    const language = languageDropdown?.value;
+    if (language) {
+      if (BOOK) {
+        BOOK.language = language;
+        languageDropdownContainer!.style.display = "none";
+      }
+    }
   });
 });
 
