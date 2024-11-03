@@ -323,9 +323,10 @@ async fn synthesize_speech(text: &str, language: &str) -> Result<BinaryResponse,
     let client = PollyClient::new(&config);
     
     let voice_id = match language {
-        "en" => VoiceId::Matthew,
-        "es" => VoiceId::Miguel,
-        "fr" => VoiceId::Mathieu,
+        "en" | "English" => VoiceId::Matthew,
+        "es" | "Spanish" => VoiceId::Miguel,
+        "fr" | "French" => VoiceId::Mathieu,
+        "de" | "German" => VoiceId::Hans,
         _ => return Err("Unsupported language".into()),
     };
 
@@ -335,7 +336,10 @@ async fn synthesize_speech(text: &str, language: &str) -> Result<BinaryResponse,
         .voice_id(voice_id)
         .send()
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            println!("{}", e.to_string());
+            e.to_string()
+        })?;
 
     let audio_stream = output.audio_stream;
     let data = audio_stream.collect().await.map_err(|e| e.to_string())?;

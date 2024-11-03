@@ -635,6 +635,10 @@ video {
   margin-top: 1rem;
 }
 
+.box-border {
+  box-sizing: border-box;
+}
+
 .flex {
   display: flex;
 }

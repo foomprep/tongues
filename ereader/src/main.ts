@@ -172,8 +172,6 @@ window.addEventListener("DOMContentLoaded", () => {
     contentContainer!.innerHTML = BOOK!.spine[CURRENT_CHAPTER].contents;
   });
   nextButton!.addEventListener("click", (_e: any) => {
-    console.log('nextButton');
-    console.log(CURRENT_CHAPTER);
     CURRENT_CHAPTER = (CURRENT_CHAPTER === BOOK!.spine.length-1) ? CURRENT_CHAPTER : CURRENT_CHAPTER + 1;
     const contentContainer: HTMLDivElement | null = document.querySelector("#content-container");
     contentContainer!.innerHTML = BOOK!.spine[CURRENT_CHAPTER].contents;
@@ -193,10 +191,12 @@ window.addEventListener("DOMContentLoaded", () => {
   const languageDropdown: HTMLSelectElement | null = document.querySelector("#language-dropdown");
   languageSelectButton!.addEventListener("click", (_e: any) => {
     const language = languageDropdown?.value;
+    console.log(language);
     if (language) {
       if (BOOK) {
         BOOK.language = language;
         languageDropdownContainer!.style.display = "none";
+        window.translate = createTranslateFunction(language);
       }
     }
   });
