@@ -36,61 +36,124 @@ interface Audio {
   mimeType: string;
 }
 
-interface Page {
-  content: HTMLElement[];
+interface PaginatorOptions {
+  containerSelector: string;
+  contentSelector: string;
+  htmlContent: string;
+  onPageChange?: (currentPage: number, totalPages: number) => void;
+}
+
+class HTMLPaginator {
+  private container: HTMLElement;
+  private content: HTMLElement;
+  private pages: string[] = [];
+  private currentPage: number = 0;
+  private htmlContent: string;
+  private onPageChange?: (currentPage: number, totalPages: number) => void;
+
+  constructor(options: PaginatorOptions) {
+    const container = document.querySelector<HTMLElement>(options.containerSelector);
+    const content = document.querySelector<HTMLElement>(options.contentSelector);
+
+    if (!container || !content) {
+      throw new Error('Container or content element not found');
+    }
+
+    this.container = container;
+    this.content = content;
+    this.htmlContent = options.htmlContent;
+    this.onPageChange = options.onPageChange;
+
+    this.init();
+  }
+
+  private init(): void {
+    this.paginateContent();
+    window.addEventListener('resize', () => this.paginateContent());
+    this.displayCurrentPage();
+  }
+
+  private paginateContent(): void {
+    // Reset content for measurement
+    this.content.style.height = 'auto';
+    this.content.innerHTML = this.htmlContent;
+    
+    const containerHeight = this.container.clientHeight;
+    const newPages: string[] = [];
+    let currentContent = '';
+    let currentHeight = 0;
+    
+    // Clone nodes and measure their height
+    Array.from(this.content.childNodes).forEach(node => {
+      const clone = node.cloneNode(true);
+      const tempDiv = document.createElement('div');
+      tempDiv.appendChild(clone);
+      this.content.appendChild(tempDiv);
+      
+      const nodeHeight = tempDiv.offsetHeight;
+      
+      if (currentHeight + nodeHeight > containerHeight) {
+        newPages.push(currentContent);
+        currentContent = tempDiv.innerHTML;
+        currentHeight = nodeHeight;
+      } else {
+        currentContent += tempDiv.innerHTML;
+        currentHeight += nodeHeight;
+      }
+      
+      this.content.removeChild(tempDiv);
+    });
+    
+    if (currentContent) {
+      newPages.push(currentContent);
+    }
+    
+    this.pages = newPages;
+    this.currentPage = Math.min(this.currentPage, this.pages.length - 1);
+    this.displayCurrentPage();
+  }
+
+  private displayCurrentPage(): void {
+    if (!this.pages.length) return;
+    this.content.innerHTML = this.pages[this.currentPage];
+    this.onPageChange?.(this.currentPage + 1, this.pages.length);
+  }
+
+  public nextPage(): void {
+    this.currentPage++;
+    this.displayCurrentPage();
+  }
+
+  public previousPage(): void {
+    this.currentPage--;
+    this.displayCurrentPage();
+  }
+
+  public goToPage(pageNumber: number): void {
+    const page = pageNumber - 1;
+    if (page >= 0 && page < this.pages.length) {
+      this.currentPage = page;
+      this.displayCurrentPage();
+    }
+  }
+
+  public getCurrentPage(): number {
+    return this.currentPage + 1;
+  }
+
+  public getTotalPages(): number {
+    return this.pages.length;
+  }
+
+  public destroy(): void {
+    window.removeEventListener('resize', () => this.paginateContent());
+  }
 }
 
 let BOOK: Book | null = null;
 let SPINE_INDEX: number = 0;
-let CURRENT_PAGES: Page[] | null;
-let CURRENT_PAGE_INDEX: number = 0;
-let CURRENT_CHAPTER: number = 0;
+let CURRENT_PAGINATOR: HTMLPaginator | null;
 let AUDIO: Audio | null = null;
-
-function paginateContent(containerDiv: HTMLDivElement): Page[] {
-  const availableHeight = window.innerHeight;
-  const elements = Array.from(containerDiv.children) as HTMLElement[];
-  const pages: Page[] = [];
-  let currentPage: Page = { content: [] };
-  let currentHeight = 0;
-
-  for (const element of elements) {
-    // Get computed styles without modifying the DOM
-    const styles = window.getComputedStyle(element);
-    const elementHeight = element.getBoundingClientRect().height;
-    const elementMargin = parseFloat(styles.marginBottom) + parseFloat(styles.marginTop);
-    const totalElementHeight = elementHeight + elementMargin;
-
-    // If adding this element would exceed the page height, start a new page
-    if (currentHeight + totalElementHeight > availableHeight && currentPage.content.length > 0) {
-      pages.push(currentPage);
-      currentPage = { content: [] };
-      currentHeight = 0;
-    }
-
-    // Add element to current page
-    currentPage.content.push(element);
-    currentHeight += totalElementHeight;
-  }
-
-  // Add the last page if it has content
-  if (currentPage.content.length > 0) {
-    pages.push(currentPage);
-  }
-
-  return pages;
-}
-
-
-function displayPage(containerDiv: HTMLDivElement, page: Page): void {
-  // Clear current content
-  containerDiv.innerHTML = '';
-  
-  // Add page content
-  page.content.forEach(element => {
-    containerDiv.appendChild(element.cloneNode(true));
-  });
-}
 
 function sanitizeModelResponse(input: string): string {
     return input.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/^"|"$/g, '');
@@ -187,14 +250,17 @@ window.addEventListener("DOMContentLoaded", () => {
                 document.head.appendChild(style);
               });
 
-              const contentContainer: HTMLDivElement | null = document.querySelector("#content-container");
+              SPINE_INDEX = 0;
+              CURRENT_PAGINATOR = new HTMLPaginator({
+                containerSelector: "#content-container",
+                contentSelector: "#content",
+                htmlContent: BOOK.spine[SPINE_INDEX].contents,
+                onPageChange: (currentPage, totalPages) => {
+                  console.log(`Page ${currentPage} of ${totalPages}`);
+                }
+              });
               openSpinner!.style.display = "none";
-              contentContainer!.innerHTML = BOOK.spine[0].contents;
-              CURRENT_PAGES = paginateContent(contentContainer!);
-              CURRENT_PAGE_INDEX = 0;
-              displayPage(contentContainer!, CURRENT_PAGES[CURRENT_PAGE_INDEX]);
               bookContainer!.style.display = "flex";
-              CURRENT_CHAPTER = 0;
 
               if (modifiedBook.language !== "unknown") {
                 window.translate = createTranslateFunction(modifiedBook.language);
@@ -243,24 +309,27 @@ window.addEventListener("DOMContentLoaded", () => {
   const prevButton : HTMLButtonElement | null = document.querySelector("#prev-button");
   const nextButton: HTMLButtonElement | null = document.querySelector("#next-button");
   prevButton!.addEventListener("click", (_e: any) => {
-    CURRENT_CHAPTER = (CURRENT_CHAPTER > 0) ? CURRENT_CHAPTER - 1 : 0;
-    const contentContainer: HTMLDivElement | null = document.querySelector("#content-container");
-    contentContainer!.innerHTML = BOOK!.spine[CURRENT_CHAPTER].contents;
+    //CURRENT_CHAPTER = (CURRENT_CHAPTER > 0) ? CURRENT_CHAPTER - 1 : 0;
+    //const contentContainer: HTMLDivElement | null = document.querySelector("#content-container");
+    //contentContainer!.innerHTML = BOOK!.spine[CURRENT_CHAPTER].contents;
   });
   nextButton!.addEventListener("click", (_e: any) => {
-    const contentDiv: HTMLDivElement | null = document.querySelector("#content-container");
-    if (CURRENT_PAGE_INDEX == CURRENT_PAGES!.length - 1) {
-      // at end of current chapter
-      SPINE_INDEX += 1;
-      CURRENT_PAGE_INDEX = 0;
-      contentDiv!.innerHTML = BOOK!.spine[SPINE_INDEX].contents;
-      CURRENT_PAGES = paginateContent(contentDiv!);
-      console.log(CURRENT_PAGES[0].content);
-      CURRENT_PAGE_INDEX = 0;
-      displayPage(contentDiv!, CURRENT_PAGES[CURRENT_PAGE_INDEX]);
+    // TODO disable button until callback completes
+    if (CURRENT_PAGINATOR?.getCurrentPage() === CURRENT_PAGINATOR?.getTotalPages()) {
+      // end of spine item
+      if (SPINE_INDEX < BOOK!.spine.length - 1) {
+        SPINE_INDEX += 1;
+        CURRENT_PAGINATOR = new HTMLPaginator({
+          containerSelector: "#content-container",
+          contentSelector: "#content",
+          htmlContent: BOOK!.spine[SPINE_INDEX].contents,
+          onPageChange: (currentPage, totalPages) => {
+            console.log(`Page ${currentPage} of ${totalPages}`);
+          }
+        });
+      }
     } else {
-      CURRENT_PAGE_INDEX += 1;
-      displayPage(contentDiv!, CURRENT_PAGES![CURRENT_PAGE_INDEX]);
+      CURRENT_PAGINATOR!.nextPage();
     }
   });
 
