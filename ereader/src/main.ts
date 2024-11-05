@@ -309,9 +309,20 @@ window.addEventListener("DOMContentLoaded", () => {
   const prevButton : HTMLButtonElement | null = document.querySelector("#prev-button");
   const nextButton: HTMLButtonElement | null = document.querySelector("#next-button");
   prevButton!.addEventListener("click", (_e: any) => {
-    //CURRENT_CHAPTER = (CURRENT_CHAPTER > 0) ? CURRENT_CHAPTER - 1 : 0;
-    //const contentContainer: HTMLDivElement | null = document.querySelector("#content-container");
-    //contentContainer!.innerHTML = BOOK!.spine[CURRENT_CHAPTER].contents;
+    if (CURRENT_PAGINATOR?.getCurrentPage() === 1) {
+      // beginning of spine item
+      // TODO this does not navigate back to cover
+      if (SPINE_INDEX > 0) {
+        SPINE_INDEX -= 1;
+        CURRENT_PAGINATOR = new HTMLPaginator({
+          containerSelector: "#content-container",
+          contentSelector: "#content",
+          htmlContent: BOOK!.spine[SPINE_INDEX].contents,
+        });
+      }
+    } else {
+      CURRENT_PAGINATOR!.previousPage();
+    }
   });
   nextButton!.addEventListener("click", (_e: any) => {
     // TODO disable button until callback completes
@@ -323,9 +334,6 @@ window.addEventListener("DOMContentLoaded", () => {
           containerSelector: "#content-container",
           contentSelector: "#content",
           htmlContent: BOOK!.spine[SPINE_INDEX].contents,
-          onPageChange: (currentPage, totalPages) => {
-            console.log(`Page ${currentPage} of ${totalPages}`);
-          }
         });
       }
     } else {
