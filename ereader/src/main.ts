@@ -20,6 +20,10 @@ interface Book {
   cover_image: number[] | null;
 }
 
+interface PaginatedBook {
+  contents: Page[][];
+}
+
 interface SpineItem {
     id: string;
     href: string;
@@ -36,9 +40,78 @@ interface Audio {
   mimeType: string;
 }
 
-let BOOK: Book | null;
+interface Page {
+  content: HTMLElement[];
+  height: number;
+}
+
+let BOOK: Book | null = null;
+let PAGINATED_BOOK: PaginatedBook | null = null;
 let CURRENT_CHAPTER: number = 0;
 let AUDIO: Audio | null = null;
+
+function paginateContent(containerDiv: HTMLDivElement): Page[] {
+  // Store original styles to restore later
+  const originalStyles = {
+    height: containerDiv.style.height,
+    overflow: containerDiv.style.overflow,
+    position: containerDiv.style.position,
+  };
+
+  // Set container to scrollable temporarily for measurement
+  containerDiv.style.overflow = 'hidden';
+  const availableHeight = containerDiv.clientHeight;
+
+  // Create a deep clone of the content for measurement
+  const contentClone = containerDiv.cloneNode(true) as HTMLDivElement;
+  contentClone.style.position = 'absolute';
+  contentClone.style.visibility = 'hidden';
+  contentClone.style.height = 'auto';
+  document.body.appendChild(contentClone);
+
+  // Get all direct child elements
+  const elements = Array.from(containerDiv.children) as HTMLElement[];
+  const pages: Page[] = [];
+  let currentPage: Page = { content: [], height: 0 };
+
+  for (const element of elements) {
+    const elementHeight = element.offsetHeight;
+    const elementMargin = parseInt(window.getComputedStyle(element).marginBottom) +
+                         parseInt(window.getComputedStyle(element).marginTop);
+    const totalElementHeight = elementHeight + elementMargin;
+
+    // If adding this element would exceed the page height, start a new page
+    if (currentPage.height + totalElementHeight > availableHeight && currentPage.content.length > 0) {
+      pages.push(currentPage);
+      currentPage = { content: [], height: 0 };
+    }
+
+    // Add element to current page
+    currentPage.content.push(element);
+    currentPage.height += totalElementHeight;
+  }
+
+  // Add the last page if it has content
+  if (currentPage.content.length > 0) {
+    pages.push(currentPage);
+  }
+
+  // Clean up
+  document.body.removeChild(contentClone);
+  Object.assign(containerDiv.style, originalStyles);
+
+  return pages;
+}
+
+function displayPage(containerDiv: HTMLDivElement, page: Page): void {
+  // Clear current content
+  containerDiv.innerHTML = '';
+  
+  // Add page content
+  page.content.forEach(element => {
+    containerDiv.appendChild(element.cloneNode(true));
+  });
+}
 
 function sanitizeModelResponse(input: string): string {
     return input.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/^"|"$/g, '');
