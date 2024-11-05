@@ -31,6 +31,7 @@ struct Book {
     spine: Vec<SpineItem>,
     language: String,
     css: Vec<String>,
+    cover_image: Option<Vec<u8>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -64,11 +65,13 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
         spine: Vec::new(),
         language,
         css: Vec::new(),
+        cover_image: None,
     };
 
     let parser = EventReader::from_str(&content_opf);
     let mut current_section = None;
     let mut manifest_items = HashMap::new();
+    let mut cover_id = None;
 
     // Parse the OPF file
     for event in parser {
@@ -77,6 +80,15 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
                 match name.local_name.as_str() {
                     "manifest" => current_section = Some("manifest"),
                     "spine" => current_section = Some("spine"),
+                    "meta" => {
+                        for attr in &attributes {
+                            if attr.name.local_name == "name" && attr.value == "cover" {
+                                if let Some(content_attr) = attributes.iter().find(|a| a.name.local_name == "content") {
+                                    cover_id = Some(content_attr.value.clone());
+                                }
+                            }
+                        }
+                    }
                     "item" if current_section == Some("manifest") => {
                         let mut id = None;
                         let mut href = None;
@@ -128,18 +140,25 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
         }
     }
 
-    // Load contents for each spine item and CSS files
-    for (_, (href, _media_type)) in &manifest_items {
-        let mut content = String::new();
+    // Load contents for each spine item, CSS files, and cover image
+    for (id, (href, media_type)) in &manifest_items {
+        let mut content = Vec::new();
         if let Ok(mut file) = archive.by_name(href).map_err(|e| println!("{}", e)) {
-            if file.read_to_string(&mut content).map_err(|e| e.to_string()).is_ok() {
+            if file.read_to_end(&mut content).map_err(|e| e.to_string()).is_ok() {
                 if href.ends_with(".css") {
-                    book.css.push(content);
+                    book.css.push(String::from_utf8_lossy(&content).into_owned());
                 } else if let Some(item) = book.spine.iter_mut().find(|item| &item.href == href) {
                     if item.href.ends_with(".html") || item.href.ends_with(".xhtml") {
-                        content = wrap_words_with_translate(&content);
+                        let text_content = String::from_utf8_lossy(&content);
+                        item.contents = wrap_words_with_translate(&text_content);
+                    } else {
+                        item.contents = String::from_utf8_lossy(&content).into_owned();
                     }
-                    item.contents = content;
+                }
+
+                // Check if this is the cover image
+                if Some(id) == cover_id.as_ref() {
+                    book.cover_image = Some(content);
                 }
             }
         }
@@ -147,7 +166,6 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
 
     Ok(book)
 }
-
 
 fn find_opf_path<R: Read>(container: R) -> Result<String, Box<dyn std::error::Error>> {
     let parser = EventReader::new(container);
@@ -166,6 +184,7 @@ fn find_opf_path<R: Read>(container: R) -> Result<String, Box<dyn std::error::Er
     
     Err("Could not find OPF path in container.xml".into())
 }
+
 
 // TODO this function does not seem to wrap all words for given epubs ???
 fn wrap_words_with_translate(html: &str) -> String {
@@ -336,7 +355,6 @@ async fn get_more_info(text: &str, language: &str) -> Result<TextInfo, String> {
 
     Ok(info)
 }
-
 
 #[tauri::command]
 async fn synthesize_speech(text: &str, language: &str) -> Result<BinaryResponse, String> {

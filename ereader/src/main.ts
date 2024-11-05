@@ -17,6 +17,7 @@ interface Book {
   spine: SpineItem[];
   language: string;
   css: string[]; 
+  cover_image: number[] | null;
 }
 
 interface SpineItem {
@@ -111,8 +112,22 @@ window.addEventListener("DOMContentLoaded", () => {
             invoke<Book>('parse_epub', {
               epubPath: selected as string
             }).then(modifiedBook => {
-              console.log(modifiedBook);
               BOOK = modifiedBook;
+
+              if (modifiedBook.cover_image) {
+                const imageArray = new Uint8Array(modifiedBook.cover_image);
+                const blob = new Blob([imageArray], { type: 'image/jpeg' });
+                const imageUrl = URL.createObjectURL(blob);
+                const imageElement = document.createElement("img");
+                imageElement.src = imageUrl;
+                const coverSpineItem = {
+                  id: "coverImage",
+                  href: "",
+                  media_type: "application/xml",
+                  contents: imageElement.outerHTML,
+                };
+                BOOK.spine.unshift(coverSpineItem);
+              }
 
               // TODO this is not removed when book is closed!
               modifiedBook.css.forEach(cssString => {
