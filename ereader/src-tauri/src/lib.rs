@@ -141,7 +141,7 @@ async fn parse_epub(epub_path: &str) -> Result<Book, String> {
     }
 
     // Load contents for each spine item, CSS files, and cover image
-    for (id, (href, media_type)) in &manifest_items {
+    for (id, (href, _media_type)) in &manifest_items {
         let mut content = Vec::new();
         if let Ok(mut file) = archive.by_name(href).map_err(|e| println!("{}", e)) {
             if file.read_to_end(&mut content).map_err(|e| e.to_string()).is_ok() {

@@ -1,6 +1,7 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { documentDir} from "@tauri-apps/api/path";
+import './styles/fonts.css';
 
 declare global {
   interface Window {
@@ -85,6 +86,10 @@ class HTMLPaginator {
     
     // Clone nodes and measure their height
     Array.from(this.content.childNodes).forEach(node => {
+      if (node instanceof HTMLImageElement) {
+        console.log(window.innerHeight);
+        node.style.height = (window.innerHeight * 0.8) + 'px';
+      }
       const clone = node.cloneNode(true);
       const tempDiv = document.createElement('div');
       tempDiv.appendChild(clone);
