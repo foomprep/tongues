@@ -41,7 +41,7 @@ function App() {
   const [segments, setSegments] = useState<string[]>([]); // List of file names in SEGMENTS_DIR
   const [index, setIndex] = useState<number>(0);
   const [translation, setTranslation] = useState<string>('');
-  const [word, setWord] = useState<Word>({translation: '', text: '', audioUrl: ''});
+  const [word, setWord] = useState<Word | null>();
   const [language, setLanguage] = useState<string>('');
   const [playbackRate, setPlaybackRate] = useState<string>("Normal");
   const [wordLoading, setWordLoading] = useState<boolean>(false);
@@ -160,7 +160,7 @@ function App() {
 
   const handleSpeechPlay = async (_event: any) => {
     try {
-      if (word.audioBlob) {
+      if (word && word.audioBlob) {
         const arrayBuffer = await word.audioBlob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
         const audioData = Array.from(uint8Array);
@@ -192,7 +192,7 @@ function App() {
           </div>
           <div>{translation}</div>
         </div>
-        { wordLoading ? <Spinner /> : word.text !== '' && 
+        { wordLoading ? <Spinner /> : word && 
           <div className="h-1/2">
             <div className="flex gap-3">
               <div>{word.text}</div>

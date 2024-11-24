@@ -197,13 +197,15 @@ window.addEventListener("DOMContentLoaded", () => {
         AUDIO = audio;
         const originalText: HTMLParagraphElement | null = document.querySelector("#original-text");
         const translationText: HTMLParagraphElement | null = document.querySelector("#translation-text");
-        originalText!.innerText = text;
+        const words = text.split(' ');
+        originalText!.innerHTML = words.map((word, i) => `<div onclick="window.translate('${word}')">${word}</div>`).join(' ');
         translationText!.innerText = translation.text;
 
         modalContent!.style.display = "block";
         spinner!.style.display = "none";
       });
     });
+
   };
 
   // TODO if user presses cancel gets stuck in spinner
