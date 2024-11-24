@@ -622,6 +622,10 @@ video {
   height: 100vh;
 }
 
+.max-h-\[80\%\] {
+  max-height: 80%;
+}
+
 .w-full {
   width: 100%;
 }
@@ -632,6 +636,14 @@ video {
 
 .max-w-\[40\%\] {
   max-width: 40%;
+}
+
+.max-w-\[80\%\] {
+  max-width: 80%;
+}
+
+.max-w-\[50\%\] {
+  max-width: 50%;
 }
 
 .transform {
@@ -654,12 +666,12 @@ video {
   justify-content: center;
 }
 
-.gap-4 {
-  gap: 1rem;
-}
-
 .gap-2 {
   gap: 0.5rem;
+}
+
+.gap-4 {
+  gap: 1rem;
 }
 
 .overflow-hidden {
