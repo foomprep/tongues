@@ -198,7 +198,7 @@ window.addEventListener("DOMContentLoaded", () => {
         const originalText: HTMLParagraphElement | null = document.querySelector("#original-text");
         const translationText: HTMLParagraphElement | null = document.querySelector("#translation-text");
         const words = text.split(' ');
-        originalText!.innerHTML = words.map((word, i) => `<div onclick="window.translate('${word}')">${word}</div>`).join(' ');
+        originalText!.innerHTML = words.map(word => `<div onclick="window.translate('${word}')">${word}</div>`).join(' ');
         translationText!.innerText = translation.text;
 
         modalContent!.style.display = "block";
