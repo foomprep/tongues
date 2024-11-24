@@ -16,6 +16,15 @@
         animation: spin 1s linear infinite;
       }
 
+      .more-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -56,12 +65,17 @@
           <div id="modal-content" class="flex-col gap-4 overflow-auto">
             <div class="flex flex-wrap gap-2 text-2xl" id="original-text"></div>
             <p id="translation-text" class="text-xl"></p>
-            <button id="play-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none box-border">
-              Play
-            </button>
-            <button id="more-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none box-border">
-              More
-            </button>
+            <div class="flex">
+              <button id="play-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none box-border">
+                Play
+              </button>
+              <button id="more-button" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none box-border">
+                More
+              </button>
+              <button id="more-button-spinner" class="mt-4 mr-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none box-border hidden">
+                <div id="more-spinner" class="more-spinner"></div>
+              </button>
+            </div>
             <p id="text-info"></p>
           </div>
         </div>

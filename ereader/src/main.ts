@@ -380,15 +380,20 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  const moreButton = document.querySelector("#more-button");
+  const moreButton: HTMLButtonElement | null = document.querySelector("#more-button");
+  const moreButtonSpinner: HTMLButtonElement | null = document.querySelector("#more-button-spinner");
   const originalText: HTMLParagraphElement | null = document.querySelector("#original-text");
   moreButton?.addEventListener("click", async (_e: any) => {
+    moreButton!.style.display = "none";
+    moreButtonSpinner!.style.display = "block";
     const textInfo = await invoke<TextInfo>('get_more_info', {
       text: originalText!.innerText,
       language: BOOK!.language,
     });
     const infoParagraph : HTMLParagraphElement | null = document.querySelector("#text-info");
     infoParagraph!.innerText = sanitizeModelResponse(textInfo.info);
+    moreButtonSpinner!.style.display = "none";
+    moreButton!.style.display = "block";
   });
 });
 
